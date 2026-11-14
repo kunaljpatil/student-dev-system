@@ -1,0 +1,15 @@
+# Virtual environments
+venv/
+.venv/
+.venv-1/
+
+# Python & Pytest caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets & local database
+.env
+student_dev.db
+*.db
+*.sqlite3

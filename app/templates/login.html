@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | StudentDev.{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block main_container %}
+<div class="login-split-page">
+  <div class="row g-0 min-vh-100">
+    
+    <!-- LEFT PANEL: Dark Obsidian Slate Editorial Brand Showcase -->
+    <div class="col-12 col-lg-6 login-left-panel d-flex flex-column justify-content-between">
+      
+      <!-- Top Brand & Hero Headline -->
+      <div>
+        <!-- Logo -->
+        <div class="d-flex align-items-center gap-2 mb-4 mb-lg-5">
+          <div class="sprout-icon-wrap">
+            <img src="/static/images/sprout-logo-clean.png" alt="StudentDev Sprout" width="26" height="26">
+          </div>
+          <span class="brand-text-left">StudentDev.</span>
+        </div>
+
+        <!-- Tagline / Subtitle -->
+        <div class="editorial-eyebrow mb-2">
+          <span class="eyebrow-dash">—</span> INTELLIGENCE MEETS POSSIBILITY
+        </div>
+
+        <!-- Main Headline in Serif -->
+        <h1 class="editorial-title mb-3">
+          More than grades.<br>
+          <span class="editorial-title-accent">A future in bloom.</span>
+        </h1>
+
+        <!-- Narrative Description -->
+        <p class="editorial-description mb-4">
+          AI-Based Holistic Student Development Platform. A space to understand potential — and nurture what comes next.
+        </p>
+      </div>
+
+      <!-- Center Botanical Glass Sculpture -->
+      <div class="sculpture-center-area my-auto position-relative text-center py-2">
+        <div class="sculpture-glow-backdrop"></div>
+        <img src="/static/images/hero-sculpture.png" 
+             alt="Botanical Growth in Every Dimension" 
+             class="img-fluid hero-sculpture-img" 
+             loading="eager">
+        <div class="sculpture-caption text-start">
+          <span class="caption-dash">—</span> GROWTH, IN EVERY DIMENSION
+        </div>
+      </div>
+
+      <!-- Left Panel Bottom Footer -->
+      <div class="left-panel-footer pt-3 mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="footer-motto">Learn. Discover. Become.</span>
+          <a href="#quickDemoSection" class="footer-chapter-link">
+            YOUR NEXT CHAPTER <span class="arrow-glyph">↗</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: Warm Oatmeal Cream Login Portal & Demo Cards -->
+    <div class="col-12 col-lg-6 login-right-panel d-flex flex-column justify-content-between">
+      
+      <!-- Top Portal Status Bar -->
+      <div class="portal-header-bar d-flex justify-content-between align-items-center mb-4">
+        <span class="portal-badge-text">THE STUDENTDEV PORTAL</span>
+        <a href="mailto:support@school.test" class="portal-help-link">Need help? ↗</a>
+      </div>
+
+      <!-- Center Form & Interactive Quick Access Cards -->
+      <div class="portal-content-box mx-auto my-auto w-100">
+        
+        <!-- Welcome Header -->
+        <div class="mb-4">
+          <h2 class="welcome-heading mb-1">Welcome back.</h2>
+          <p class="welcome-subtitle">Your next chapter starts here. Sign in to continue.</p>
+        </div>
+
+        <!-- Authentication Form -->
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)" novalidate>
+          
+          <!-- Email Input -->
+          <div class="mb-3">
+            <label class="form-field-label" for="emailInput">Email Address</label>
+            <div class="input-field-container">
+              <i class="bi bi-envelope input-field-icon"></i>
+              <input type="email" 
+                     id="emailInput" 
+                     class="clean-form-input" 
+                     placeholder="e.g. teacher@school.test" 
+                     required 
+                     autocomplete="username">
+            </div>
+          </div>
+
+          <!-- Password Input with Toggle -->
+          <div class="mb-3">
+            <label class="form-field-label" for="passwordInput">Password</label>
+            <div class="input-field-container">
+              <i class="bi bi-lock input-field-icon"></i>
+              <input type="password" 
+                     id="passwordInput" 
+                     class="clean-form-input" 
+                     placeholder="Enter your password" 
+                     required 
+                     autocomplete="current-password">
+              <button type="button" 
+                      class="password-toggle-btn" 
+                      onclick="togglePasswordVisibility()" 
+                      aria-label="Toggle password visibility">
+                <i id="passwordEyeIcon" class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="d-flex justify-content-between align-items-center mb-4 pt-1">
+            <label class="custom-checkbox-wrap">
+              <input type="checkbox" id="rememberMeCheckbox">
+              <span class="checkbox-box"></span>
+              <span class="checkbox-label-text">Remember me</span>
+            </label>
+            <a href="javascript:void(0)" 
+               class="forgot-password-link" 
+               onclick="showToast('Password reset assistance is managed by school administrators. Contact admin@school.test', 'Password Help')">
+              Forgot password?
+            </a>
+          </div>
+
+          <!-- Terracotta Primary Submit Button -->
+          <button type="submit" id="submitBtn" class="btn-terracotta-submit w-100 mb-4">
+            <span id="btnText">Sign In <i class="bi bi-arrow-right ms-2"></i></span>
+            <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+          </button>
+        </form>
+
+        <!-- Quick Demo Accounts Section -->
+        <div id="quickDemoSection" class="demo-accounts-wrapper pt-2">
+          <div class="demo-header-line d-flex align-items-center mb-1">
+            <span class="demo-header-title">QUICK DEMO ACCOUNTS</span>
+            <div class="demo-rule flex-grow-1 ms-3"></div>
+          </div>
+          <p class="demo-subtitle mb-3">Explore StudentDev through a different perspective.</p>
+
+          <div class="d-flex flex-column gap-2">
+            
+            <!-- Class Teacher Card -->
+            <button type="button" 
+                    class="demo-account-card w-100 text-start" 
+                    onclick="triggerDemoLogin('teacher1@school.test', 'Teach@123', this)">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="demo-icon-badge">
+                    <i class="bi bi-display"></i>
+                  </div>
+                  <div>
+                    <div class="demo-role-name">Class Teacher</div>
+                    <div class="demo-role-desc">Class 10-A / Class 1</div>
+                  </div>
+                </div>
+                <div class="demo-arrow">↗</div>
+              </div>
+            </button>
+
+            <!-- Student Card -->
+            <button type="button" 
+                    class="demo-account-card w-100 text-start" 
+                    onclick="triggerDemoLogin('student001@school.test', 'Study@123', this)">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="demo-icon-badge">
+                    <i class="bi bi-mortarboard"></i>
+                  </div>
+                  <div>
+                    <div class="demo-role-name">Student</div>
+                    <div class="demo-role-desc">Roll No 1 / Term Insights</div>
+                  </div>
+                </div>
+                <div class="demo-arrow">↗</div>
+              </div>
+            </button>
+
+            <!-- Administrator Card -->
+            <button type="button" 
+                    class="demo-account-card w-100 text-start" 
+                    onclick="triggerDemoLogin('admin@school.test', 'Admin@123', this)">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="demo-icon-badge">
+                    <i class="bi bi-buildings"></i>
+                  </div>
+                  <div>
+                    <div class="demo-role-name">School Administrator</div>
+                    <div class="demo-role-desc">Institution Analytics</div>
+                  </div>
+                </div>
+                <div class="demo-arrow">↗</div>
+              </div>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Panel Bottom Footer -->
+      <div class="portal-bottom-footer pt-3 mt-4 text-center text-lg-start">
+        <div class="d-inline-flex align-items-center gap-2">
+          <i class="bi bi-shield-check footer-shield-icon"></i>
+          <span class="footer-privacy-text">A thoughtful space for students, educators and institutions.</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  function togglePasswordVisibility() {
+    const input = document.getElementById("passwordInput");
+    const icon = document.getElementById("passwordEyeIcon");
+    if (!input || !icon) return;
+
+    if (input.type === "password") {
+      input.type = "text";
+      icon.className = "bi bi-eye-slash";
+    } else {
+      input.type = "password";
+      icon.className = "bi bi-eye";
+    }
+  }
+
+  function triggerDemoLogin(email, pass, btnElement) {
+    document.getElementById("emailInput").value = email;
+    document.getElementById("passwordInput").value = pass;
+
+    // Visual ripple effect on selected card
+    document.querySelectorAll(".demo-account-card").forEach(c => c.classList.remove("active-demo"));
+    if (btnElement) {
+      btnElement.classList.add("active-demo");
+    }
+
+    // Auto submit form for instantaneous sign in
+    handleLoginSubmit(new Event("submit"));
+  }
+
+  async function handleLoginSubmit(event) {
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
+
+    const email = document.getElementById("emailInput").value.trim();
+    const password = document.getElementById("passwordInput").value;
+    const btn = document.getElementById("submitBtn");
+    const text = document.getElementById("btnText");
+    const spinner = document.getElementById("btnSpinner");
+
+    if (!email || !password) {
+      showToast("Please enter both email address and password", "Validation", true);
+      return;
+    }
+
+    btn.disabled = true;
+    text.classList.add("d-none");
+    spinner.classList.remove("d-none");
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        showToast(data.detail || "Authentication failed. Check credentials.", "Login Error", true);
+        return;
+      }
+
+      setAuthToken(data.access_token, {
+        id: data.user_id,
+        email: data.email,
+        full_name: data.full_name,
+        role: data.role,
+      });
+
+      showToast(`Welcome back, ${data.full_name}! Redirecting to portal...`, "Success");
+
+      setTimeout(() => {
+        if (data.role === "teacher") {
+          window.location.href = "/teacher";
+        } else if (data.role === "student") {
+          window.location.href = "/student";
+        } else if (data.role === "admin") {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
+        }
+      }, 600);
+
+    } catch (err) {
+      showToast(err.message || "Network error occurred", "Error", true);
+    } finally {
+      btn.disabled = false;
+      text.classList.remove("d-none");
+      spinner.classList.add("d-none");
+    }
+  }
+</script>
+{% endblock %}

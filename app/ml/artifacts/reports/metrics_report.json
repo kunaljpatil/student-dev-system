@@ -1,0 +1,352 @@
+{
+  "model_version": "1.0.0",
+  "trained_at": "2026-11-14T01:31:43.456313+00:00",
+  "random_seed": 2024,
+  "sample_count": 350,
+  "feature_names": [
+    "avg_internal_score",
+    "avg_midterm_score",
+    "score_trend",
+    "min_subject_score",
+    "subject_score_std",
+    "attendance_pct",
+    "attendance_trend",
+    "avg_assignment_score",
+    "ontime_rate",
+    "project_count",
+    "avg_project_score",
+    "lead_roles",
+    "activity_count",
+    "activity_hours",
+    "activity_diversity",
+    "competition_count",
+    "highest_competition_level",
+    "competition_wins",
+    "communication",
+    "presentation",
+    "confidence",
+    "participation",
+    "teamwork",
+    "engagement_index"
+  ],
+  "cluster_feature_names": [
+    "avg_internal_score",
+    "avg_midterm_score",
+    "attendance_pct",
+    "avg_assignment_score",
+    "ontime_rate",
+    "activity_hours",
+    "activity_diversity",
+    "communication",
+    "presentation",
+    "confidence",
+    "participation",
+    "teamwork",
+    "engagement_index"
+  ],
+  "cluster_names": {
+    "0": "Steady Progressors",
+    "1": "High Achiever - Well Rounded",
+    "2": "Academically Strong - Low Engagement"
+  },
+  "regressor_metrics": {
+    "model_name": "Student Performance Prediction Model (XGBoost Regressor)",
+    "mae": 4.12,
+    "rmse": 5.22,
+    "r2": 0.842,
+    "cv_r2_mean": 0.793,
+    "cv_r2_std": 0.037,
+    "baseline": {
+      "model_name": "Ridge Regression (baseline)",
+      "mae": 4.45,
+      "rmse": 5.26,
+      "r2": 0.84
+    }
+  },
+  "classifier_metrics": {
+    "model_name": "Student Performance Risk Classification Model (XGBoost Classifier)",
+    "accuracy": 0.757,
+    "macro_f1": 0.735,
+    "per_class": {
+      "On Track": {
+        "precision": 0.833,
+        "recall": 0.769,
+        "f1": 0.8,
+        "support": 13
+      },
+      "Needs Monitoring": {
+        "precision": 0.611,
+        "recall": 0.524,
+        "f1": 0.564,
+        "support": 21
+      },
+      "Needs Support": {
+        "precision": 0.8,
+        "recall": 0.889,
+        "f1": 0.842,
+        "support": 36
+      }
+    },
+    "confusion_matrix": [
+      [
+        10,
+        3,
+        0
+      ],
+      [
+        2,
+        11,
+        8
+      ],
+      [
+        0,
+        4,
+        32
+      ]
+    ],
+    "classes": [
+      "On Track",
+      "Needs Monitoring",
+      "Needs Support"
+    ],
+    "baseline": {
+      "model_name": "Multinomial Logistic Regression (baseline)",
+      "accuracy": 0.714,
+      "macro_f1": 0.673
+    }
+  },
+  "clustering_metrics": {
+    "model_name": "Student Development Profiling Model (K-Means Clustering)",
+    "selected_k": 3,
+    "silhouette_score": 0.188,
+    "inertia": 2823.7,
+    "k_search_metrics": {
+      "2": {
+        "silhouette": 0.24,
+        "inertia": 3298.97
+      },
+      "3": {
+        "silhouette": 0.188,
+        "inertia": 2823.7
+      },
+      "4": {
+        "silhouette": 0.175,
+        "inertia": 2497.16
+      },
+      "5": {
+        "silhouette": 0.163,
+        "inertia": 2281.13
+      },
+      "6": {
+        "silhouette": 0.144,
+        "inertia": 2157.0
+      }
+    },
+    "cluster_distribution": {
+      "0": {
+        "name": "Steady Progressors",
+        "count": 118,
+        "pct": 33.7
+      },
+      "1": {
+        "name": "High Achiever - Well Rounded",
+        "count": 125,
+        "pct": 35.7
+      },
+      "2": {
+        "name": "Academically Strong - Low Engagement",
+        "count": 107,
+        "pct": 30.6
+      }
+    },
+    "cluster_names": {
+      "0": "Steady Progressors",
+      "1": "High Achiever - Well Rounded",
+      "2": "Academically Strong - Low Engagement"
+    },
+    "feature_names": [
+      "avg_internal_score",
+      "avg_midterm_score",
+      "attendance_pct",
+      "avg_assignment_score",
+      "ontime_rate",
+      "activity_hours",
+      "activity_diversity",
+      "communication",
+      "presentation",
+      "confidence",
+      "participation",
+      "teamwork",
+      "engagement_index"
+    ],
+    "centroids": {
+      "0": {
+        "avg_internal_score": 40.71,
+        "avg_midterm_score": 42.56,
+        "attendance_pct": 85.82,
+        "avg_assignment_score": 46.69,
+        "ontime_rate": 0.79,
+        "activity_hours": 7.26,
+        "activity_diversity": 1.14,
+        "communication": 3.11,
+        "presentation": 2.8,
+        "confidence": 2.78,
+        "participation": 2.99,
+        "teamwork": 3.15,
+        "engagement_index": 73.05
+      },
+      "1": {
+        "avg_internal_score": 63.96,
+        "avg_midterm_score": 66.16,
+        "attendance_pct": 92.29,
+        "avg_assignment_score": 70.67,
+        "ontime_rate": 0.91,
+        "activity_hours": 13.29,
+        "activity_diversity": 1.8,
+        "communication": 3.62,
+        "presentation": 3.69,
+        "confidence": 3.57,
+        "participation": 3.96,
+        "teamwork": 3.63,
+        "engagement_index": 87.25
+      },
+      "2": {
+        "avg_internal_score": 61.15,
+        "avg_midterm_score": 63.44,
+        "attendance_pct": 82.08,
+        "avg_assignment_score": 63.78,
+        "ontime_rate": 0.66,
+        "activity_hours": 4.54,
+        "activity_diversity": 0.84,
+        "communication": 2.99,
+        "presentation": 3.51,
+        "confidence": 3.54,
+        "participation": 2.45,
+        "teamwork": 2.78,
+        "engagement_index": 63.26
+      }
+    }
+  },
+  "global_importance": [
+    {
+      "feature": "min_subject_score",
+      "label": "Weakest Subject",
+      "importance": 4.807
+    },
+    {
+      "feature": "avg_internal_score",
+      "label": "Internal Average",
+      "importance": 4.314
+    },
+    {
+      "feature": "avg_assignment_score",
+      "label": "Assignment Average",
+      "importance": 1.912
+    },
+    {
+      "feature": "avg_midterm_score",
+      "label": "Midterm Average",
+      "importance": 0.692
+    },
+    {
+      "feature": "attendance_pct",
+      "label": "Attendance %",
+      "importance": 0.66
+    },
+    {
+      "feature": "score_trend",
+      "label": "Score Trend",
+      "importance": 0.649
+    },
+    {
+      "feature": "avg_project_score",
+      "label": "Project Score",
+      "importance": 0.519
+    },
+    {
+      "feature": "subject_score_std",
+      "label": "Subject Spread",
+      "importance": 0.485
+    },
+    {
+      "feature": "project_count",
+      "label": "Projects Count",
+      "importance": 0.377
+    },
+    {
+      "feature": "confidence",
+      "label": "Confidence",
+      "importance": 0.3
+    },
+    {
+      "feature": "activity_hours",
+      "label": "Activity Hours/mo",
+      "importance": 0.299
+    },
+    {
+      "feature": "engagement_index",
+      "label": "Engagement Index",
+      "importance": 0.269
+    },
+    {
+      "feature": "communication",
+      "label": "Communication",
+      "importance": 0.258
+    },
+    {
+      "feature": "attendance_trend",
+      "label": "Attendance Trend",
+      "importance": 0.181
+    },
+    {
+      "feature": "ontime_rate",
+      "label": "On-Time Submissions",
+      "importance": 0.15
+    },
+    {
+      "feature": "teamwork",
+      "label": "Teamwork",
+      "importance": 0.128
+    },
+    {
+      "feature": "activity_diversity",
+      "label": "Activity Diversity",
+      "importance": 0.097
+    },
+    {
+      "feature": "participation",
+      "label": "Participation",
+      "importance": 0.084
+    },
+    {
+      "feature": "presentation",
+      "label": "Presentation",
+      "importance": 0.08
+    },
+    {
+      "feature": "highest_competition_level",
+      "label": "Highest Level Reached",
+      "importance": 0.071
+    },
+    {
+      "feature": "activity_count",
+      "label": "Activities Count",
+      "importance": 0.048
+    },
+    {
+      "feature": "competition_count",
+      "label": "Competitions Count",
+      "importance": 0.045
+    },
+    {
+      "feature": "competition_wins",
+      "label": "Competition Wins",
+      "importance": 0.035
+    },
+    {
+      "feature": "lead_roles",
+      "label": "Lead Roles",
+      "importance": 0.023
+    }
+  ]
+}

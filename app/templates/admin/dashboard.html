@@ -1,0 +1,724 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Dashboard | Student Development System{% endblock %}
+
+{% block nav_links %}
+<li class="nav-item">
+  <a class="nav-link active" href="/admin"><i class="bi bi-shield-check me-1"></i> Institution Overview</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#classesSection"><i class="bi bi-building me-1"></i> Classrooms</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#teachersSection"><i class="bi bi-person-badge me-1"></i> Faculty</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#mlGovernanceSection"><i class="bi bi-cpu me-1"></i> ML Governance</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge" style="background: var(--brand-espresso); color: #fff;">Super Admin</span>
+      <span class="text-secondary small fw-semibold">Central Institution Management</span>
+    </div>
+    <h1 class="h2 mb-0">Institutional Analytics & Governance</h1>
+    <p class="text-secondary mb-0 small">Cross-classroom benchmarking, holistic clustering, and machine learning models</p>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-glass" onclick="loadAdminDashboard()">
+      <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+    </button>
+  </div>
+</div>
+
+<!-- 4 Institutional KPI Metric Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Total Enrolled</div>
+          <div class="kpi-value" id="adminKpiStudents">--</div>
+          <div class="kpi-subtext">350 Students Across 7 Classes</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-people-fill"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Faculty Members</div>
+          <div class="kpi-value" id="adminKpiTeachers">--</div>
+          <div class="kpi-subtext">1 Class Teacher per Cohort</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-person-video3"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Institution Average</div>
+          <div class="kpi-value" id="adminKpiAvgScore">--</div>
+          <div class="kpi-subtext">Schoolwide Predicted Mean</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-award-fill"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Active AI Model</div>
+          <div class="kpi-value" id="adminKpiModelVer">v1.0.0</div>
+          <div class="kpi-subtext text-success"><i class="bi bi-check-circle-fill me-1"></i>Production Ready</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-cpu-fill"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ML Governance & One-Click Retraining Section -->
+<div id="mlGovernanceSection" class="glass-panel p-4 mb-4" style="border-left: 4px solid var(--accent-amber);">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-gear-wide-connected fs-5" style="color: var(--accent-amber);"></i>
+        <h3 class="h5 mb-0 fw-bold">Machine Learning Engine Governance</h3>
+      </div>
+      <p class="text-secondary small mb-0">
+        Status: <strong class="text-success" id="retrainStatusText">Ready</strong> | 
+        Last Trained: <span id="retrainLastTrained">--</span> | 
+        Pipelines: <strong>XGBoost Regressor + XGBoost Classifier + K-Means Clustering</strong>
+      </p>
+    </div>
+
+    <div>
+      <button id="adminRetrainBtn" class="btn btn-amber" onclick="handleRetrainPipeline()">
+        <i class="bi bi-arrow-repeat me-1"></i> Trigger One-Click Retraining
+      </button>
+    </div>
+  </div>
+
+  <!-- Retrain Metrics Summary Bar (shown after retrain) -->
+  <div id="retrainMetricsAlert" class="mt-3 p-3 d-none" style="background: rgba(255, 255, 255, 0.7); border-radius: var(--radius-md); border: 1px solid var(--glass-border);">
+    <div class="row text-center g-2 small">
+      <div class="col-3">Regressor R²: <strong id="resR2" class="text-success">--</strong></div>
+      <div class="col-3">Classifier Acc: <strong id="resAcc" class="text-success">--</strong></div>
+      <div class="col-3">Classifier F1: <strong id="resF1" class="text-success">--</strong></div>
+      <div class="col-3">Silhouette Score: <strong id="resSil" class="text-success">--</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- Compact Collapsible Institutional Announcements & Broadcasts Bar -->
+<div class="glass-panel p-2 p-md-3 mb-4" id="adminAnnouncementsSection" style="border-left: 4px solid var(--accent-amber);">
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-1 announcement-banner-header"
+       onclick="toggleAdminAnnouncements(event)"
+       role="button"
+       tabindex="0"
+       title="Click to view or hide broadcasts">
+    <div class="d-flex align-items-center gap-2">
+      <div class="demo-icon-badge" style="width: 34px; height: 34px; font-size: 1.05rem; border-radius: 8px;">
+        <i class="bi bi-broadcast"></i>
+      </div>
+      <div>
+        <span class="fw-bold fs-6 text-espresso me-2">Institution-Wide Bulletins & Broadcasts</span>
+        <span class="badge" id="adminAnnCountBadge" style="background: var(--brand-espresso); color: #fff; font-size: 0.72rem;">0 Broadcasts</span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-amber btn-sm py-1 px-3 text-nowrap" onclick="openAdminBroadcastModal(event)">
+        <i class="bi bi-plus-circle me-1"></i> Broadcast Bulletin
+      </button>
+      <button type="button" class="btn btn-outline-glass btn-sm py-1 px-2 d-flex align-items-center gap-1" style="font-size: 0.80rem;" id="adminAnnToggleBtn">
+        <span id="adminAnnToggleText">View</span>
+        <i class="bi bi-chevron-down ms-1" id="adminAnnChevron"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Collapsible Content Feed -->
+  <div id="adminAnnouncementsCollapse" class="collapse mt-2 pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+    <p class="text-secondary small mb-3">Broadcast notices across all cohorts, all faculty, or target specific classes with custom priorities.</p>
+    <div id="adminAnnouncementsFeed" class="d-flex flex-column gap-2">
+      <div class="text-muted small">Loading bulletins...</div>
+    </div>
+    <div class="text-center mt-2 pt-1">
+      <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none py-0" style="font-size: 0.76rem;" onclick="toggleAdminAnnouncements()">
+        <i class="bi bi-chevron-up me-1"></i> Collapse Bulletins
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Comparison Charts: Class Benchmark & Global Feature Importance -->
+<div class="row g-3 mb-4">
+  <!-- Class Comparison Bar Chart -->
+  <div class="col-12 col-lg-8">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-bar-chart-fill me-1" style="color: var(--accent-amber);"></i> Cross-Class Performance Benchmark (All 7 Classes)</h3>
+      <div style="height: 280px; position: relative;">
+        <canvas id="classComparisonChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schoolwide Risk Doughnut -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-pie-chart-fill me-1" style="color: var(--accent-amber);"></i> Institutional Risk Breakdown</h3>
+      <div style="height: 280px; position: relative;">
+        <canvas id="institutionRiskChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHAP Global Feature Importance & Cluster Distribution -->
+<div class="row g-3 mb-4">
+  <!-- SHAP Global Importance -->
+  <div class="col-12 col-lg-7">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-2"><i class="bi bi-sliders2 me-1" style="color: var(--accent-amber);"></i> Systemic Feature Importance (Global SHAP Ranking)</h3>
+      <p class="text-muted small mb-3">Overall key drivers of performance across all 350 students:</p>
+      
+      <div id="globalFeatureImportanceContainer" style="max-height: 280px; overflow-y: auto;">
+        <div class="text-muted small">Loading SHAP rankings...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cluster Distribution -->
+  <div class="col-12 col-lg-5">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-2"><i class="bi bi-diagram-3-fill me-1" style="color: var(--accent-amber);"></i> Development Profiles (Clustering)</h3>
+      <p class="text-muted small mb-3">Holistic student segmentation across academic & developmental traits:</p>
+      
+      <div id="clustersDistributionList">
+        <div class="text-muted small">Loading clusters...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Classroom Management Table -->
+<div id="classesSection" class="glass-panel p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="h5 fw-bold mb-1">Classroom Oversight</h3>
+      <p class="text-secondary small mb-0">Cohort size, assigned faculty, predicted average, and attendance metrics</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="glass-table">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Faculty In-Charge</th>
+          <th>Faculty Email</th>
+          <th>Students</th>
+          <th>Avg Forecast Score</th>
+          <th>Attendance Rate</th>
+        </tr>
+      </thead>
+      <tbody id="classesTbody">
+        <tr><td colspan="6" class="text-center py-3 text-muted">Loading classrooms...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Faculty Management Table -->
+<div id="teachersSection" class="glass-panel p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="h5 fw-bold mb-1">Faculty Directory</h3>
+      <p class="text-secondary small mb-0">Active teachers and their respective assigned cohorts</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="glass-table">
+      <thead>
+        <tr>
+          <th>Teacher Name</th>
+          <th>Email Address</th>
+          <th>Assigned Classroom</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="teachersTbody">
+        <tr><td colspan="4" class="text-center py-3 text-muted">Loading faculty directory...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Admin Broadcast Announcement Modal -->
+<div class="modal fade" id="adminBroadcastModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <h5 class="modal-title fw-bold">Broadcast Institutional Bulletin</h5>
+          <p class="text-secondary small mb-0">Publish an announcement across cohorts or target specific groups</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="adminAnnForm" onsubmit="submitAdminAnnouncement(event)">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Bulletin Title</label>
+            <input type="text" id="adminAnnTitle" class="form-control glass-input form-control-sm" placeholder="e.g. Midterm Examination Schedule Announced" required>
+          </div>
+          
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Priority Level</label>
+              <select id="adminAnnPriority" class="form-select glass-input form-select-sm">
+                <option value="normal">Normal Notice</option>
+                <option value="important">Important</option>
+                <option value="urgent">Urgent Broadcast</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Target Audience</label>
+              <select id="adminAnnAudience" class="form-select glass-input form-select-sm" onchange="toggleAdminClassSelect()">
+                <option value="all">Everyone (Students & Faculty)</option>
+                <option value="students">All Students</option>
+                <option value="teachers">All Teachers</option>
+                <option value="class">Specific Class</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3 d-none" id="adminClassSelectRow">
+            <label class="form-label small fw-bold">Select Target Class</label>
+            <select id="adminAnnClassSelect" class="form-select glass-input form-select-sm">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Message Details</label>
+            <textarea id="adminAnnContent" rows="4" class="form-control glass-input form-control-sm" placeholder="Enter notice guidelines, schedule details, or administrative announcements..." required></textarea>
+          </div>
+
+          <button type="submit" id="adminAnnSubmitBtn" class="btn btn-amber w-100 btn-sm">
+            <i class="bi bi-broadcast me-1"></i> Broadcast Bulletin
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  let classCompChart = null;
+  let instRiskChart = null;
+  let adminClassesList = [];
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadAdminDashboard();
+  });
+
+  async function loadAdminDashboard() {
+    try {
+      // 1. Overview KPIs
+      const overRes = await authFetch("/api/admin/overview");
+      if (overRes && overRes.ok) {
+        const oData = await overRes.json();
+        document.getElementById("adminKpiStudents").textContent = oData.total_students;
+        document.getElementById("adminKpiTeachers").textContent = oData.total_teachers;
+        document.getElementById("adminKpiAvgScore").textContent = oData.schoolwide_avg_predicted_score;
+        document.getElementById("adminKpiModelVer").textContent = `v${oData.model_version}`;
+        document.getElementById("retrainLastTrained").textContent = oData.last_trained_at ? new Date(oData.last_trained_at).toLocaleString() : "Never";
+        renderInstitutionRiskChart(oData.risk_breakdown);
+      }
+
+      // 2. Classes Table & Chart
+      const classesRes = await authFetch("/api/admin/classes");
+      if (classesRes && classesRes.ok) {
+        const cData = await classesRes.json();
+        adminClassesList = cData;
+        renderClassesTable(cData);
+        renderClassComparisonChart(cData);
+      }
+
+      // 3. Teachers Table
+      const teachersRes = await authFetch("/api/admin/teachers");
+      if (teachersRes && teachersRes.ok) {
+        const tData = await teachersRes.json();
+        renderTeachersTable(tData);
+      }
+
+      // 4. Global SHAP Feature Importance
+      const shapRes = await authFetch("/api/admin/feature-importance");
+      if (shapRes && shapRes.ok) {
+        const sData = await shapRes.json();
+        renderGlobalFeatureImportance(sData.features);
+      }
+
+      // 5. Clusters
+      const clusterRes = await authFetch("/api/admin/clusters");
+      if (clusterRes && clusterRes.ok) {
+        const clData = await clusterRes.json();
+        renderClustersList(clData.clusters);
+      }
+
+      // 6. Announcements
+      await loadAdminAnnouncements();
+
+    } catch (e) {
+      showToast(e.message, "Admin Error", true);
+    }
+  }
+
+  function toggleAdminAnnouncements(event) {
+    if (event && event.target && event.target.closest("button") && event.target.closest("button").onclick && event.target.closest("button").onclick.toString().includes("openAdminBroadcastModal")) {
+      return;
+    }
+    const collapseEl = document.getElementById("adminAnnouncementsCollapse");
+    const textEl = document.getElementById("adminAnnToggleText");
+    const chevEl = document.getElementById("adminAnnChevron");
+    if (!collapseEl) return;
+
+    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+    if (collapseEl.classList.contains("show")) {
+      bsCollapse.hide();
+      if (textEl) textEl.textContent = "View";
+      if (chevEl) chevEl.className = "bi bi-chevron-down ms-1";
+    } else {
+      bsCollapse.show();
+      if (textEl) textEl.textContent = "Hide";
+      if (chevEl) chevEl.className = "bi bi-chevron-up ms-1";
+    }
+  }
+
+  async function loadAdminAnnouncements() {
+    try {
+      const res = await authFetch("/api/announcements");
+      if (res && res.ok) {
+        const items = await res.json();
+        const feed = document.getElementById("adminAnnouncementsFeed");
+        const countBadge = document.getElementById("adminAnnCountBadge");
+        
+        if (countBadge) {
+          countBadge.textContent = `${items.length} Broadcast${items.length === 1 ? '' : 's'}`;
+        }
+
+        if (!items || items.length === 0) {
+          feed.innerHTML = `<div class="p-3 text-center text-muted small bg-white rounded-3 border">No institutional announcements active. Click "+ Broadcast Bulletin" to post one.</div>`;
+          return;
+        }
+
+        feed.innerHTML = items.map(a => {
+          let priorityBadge = '';
+          if (a.priority === "urgent") {
+            priorityBadge = `<span class="badge" style="background: var(--status-support-bg); color: var(--status-support-text); border: 1px solid var(--status-support-border);"><i class="bi bi-exclamation-diamond-fill me-1"></i>Urgent</span>`;
+          } else if (a.priority === "important") {
+            priorityBadge = `<span class="badge" style="background: var(--status-monitoring-bg); color: var(--status-monitoring-text); border: 1px solid var(--status-monitoring-border);"><i class="bi bi-star-fill me-1"></i>Important</span>`;
+          } else {
+            priorityBadge = `<span class="badge bg-light text-secondary border">Notice</span>`;
+          }
+
+          let scopeLabel = a.class_name ? `Target: Class ${a.class_name}` : (a.target_audience === 'all' ? 'Target: Everyone' : `Target: ${a.target_audience.toUpperCase()}`);
+
+          return `
+            <div class="p-3 bg-white rounded-3 border" style="box-shadow: 0 2px 6px rgba(42, 29, 21, 0.04);">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-bold fs-6 text-espresso">${a.title}</span>
+                  ${priorityBadge}
+                  <span class="badge" style="background: rgba(217, 119, 6, 0.12); color: var(--accent-amber); font-size: 0.72rem;">${scopeLabel}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted small"><i class="bi bi-clock me-1"></i>${a.created_at}</span>
+                  <button class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.74rem;" onclick="deleteAdminAnnouncement('${a.id}')">
+                    <i class="bi bi-trash3"></i> Delete
+                  </button>
+                </div>
+              </div>
+              <p class="mb-1 text-secondary small" style="white-space: pre-wrap; line-height: 1.5;">${a.content}</p>
+              <div class="text-end text-muted" style="font-size: 0.74rem;">
+                Posted by: <strong>${a.author_name}</strong> (${a.author_role.toUpperCase()})
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch (e) {
+      console.warn("Could not load announcements", e);
+    }
+  }
+
+  function toggleAdminClassSelect() {
+    const aud = document.getElementById("adminAnnAudience").value;
+    const row = document.getElementById("adminClassSelectRow");
+    if (aud === "class") {
+      row.classList.remove("d-none");
+      const sel = document.getElementById("adminAnnClassSelect");
+      if (sel && sel.options.length === 0 && adminClassesList.length > 0) {
+        adminClassesList.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          sel.appendChild(opt);
+        });
+      }
+    } else {
+      row.classList.add("d-none");
+    }
+  }
+
+  function openAdminBroadcastModal(event) {
+    if (event) event.stopPropagation();
+    document.getElementById("adminAnnTitle").value = "";
+    document.getElementById("adminAnnContent").value = "";
+    document.getElementById("adminAnnPriority").value = "normal";
+    document.getElementById("adminAnnAudience").value = "all";
+    toggleAdminClassSelect();
+    const modal = new bootstrap.Modal(document.getElementById("adminBroadcastModal"));
+    modal.show();
+  }
+
+  async function submitAdminAnnouncement(e) {
+    e.preventDefault();
+    const btn = document.getElementById("adminAnnSubmitBtn");
+    btn.disabled = true;
+
+    const audience = document.getElementById("adminAnnAudience").value;
+    const payload = {
+      title: document.getElementById("adminAnnTitle").value.trim(),
+      content: document.getElementById("adminAnnContent").value.trim(),
+      priority: document.getElementById("adminAnnPriority").value,
+      target_audience: audience,
+      class_id: audience === "class" ? document.getElementById("adminAnnClassSelect").value : null,
+    };
+
+    try {
+      const res = await authFetch("/api/announcements", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      if (res && res.ok) {
+        showToast("Bulletin broadcast successfully!", "Success");
+        bootstrap.Modal.getInstance(document.getElementById("adminBroadcastModal")).hide();
+        loadAdminAnnouncements();
+      } else {
+        const err = await res.json();
+        showToast(err.detail || "Failed to broadcast bulletin", "Error", true);
+      }
+    } catch (err) {
+      showToast(err.message, "Error", true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteAdminAnnouncement(id) {
+    if (!confirm("Are you sure you want to delete this bulletin?")) return;
+    try {
+      const res = await authFetch(`/api/announcements/${id}`, { method: "DELETE" });
+      if (res && res.ok) {
+        showToast("Bulletin removed", "Success");
+        loadAdminAnnouncements();
+      } else {
+        showToast("Could not delete bulletin", "Error", true);
+      }
+    } catch (err) {
+      showToast(err.message, "Error", true);
+    }
+  }
+
+  function renderInstitutionRiskChart(breakdown) {
+    const ctx = document.getElementById("institutionRiskChart").getContext("2d");
+    if (instRiskChart) instRiskChart.destroy();
+
+    const onTrack = breakdown["On Track"] ? breakdown["On Track"].count : 0;
+    const monitoring = breakdown["Needs Monitoring"] ? breakdown["Needs Monitoring"].count : 0;
+    const support = breakdown["Needs Support"] ? breakdown["Needs Support"].count : 0;
+
+    instRiskChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["On Track", "Needs Monitoring", "Needs Support"],
+        datasets: [{
+          data: [onTrack, monitoring, support],
+          backgroundColor: ["#2d6a4f", "#d97706", "#c2410c"],
+          borderColor: "#fff",
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: {
+          legend: { position: "bottom", labels: { font: { family: 'Inter', size: 11 } } },
+        }
+      }
+    });
+  }
+
+  function renderClassComparisonChart(classes) {
+    const ctx = document.getElementById("classComparisonChart").getContext("2d");
+    if (classCompChart) classCompChart.destroy();
+
+    const labels = classes.map(c => c.name);
+    const scores = classes.map(c => c.avg_predicted_score);
+    const attendance = classes.map(c => c.avg_attendance_pct);
+
+    classCompChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Avg Forecast Score",
+            data: scores,
+            backgroundColor: "rgba(42, 29, 21, 0.8)",
+            borderRadius: 6,
+          },
+          {
+            label: "Attendance Rate (%)",
+            data: attendance,
+            backgroundColor: "rgba(217, 119, 6, 0.75)",
+            borderRadius: 6,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { min: 0, max: 100, grid: { color: "rgba(138, 107, 85, 0.1)" } },
+          x: { grid: { display: false } }
+        },
+        plugins: {
+          legend: { position: "top", labels: { font: { family: 'Inter', size: 11 } } }
+        }
+      }
+    });
+  }
+
+  function renderGlobalFeatureImportance(features) {
+    const container = document.getElementById("globalFeatureImportanceContainer");
+    if (!features || features.length === 0) {
+      container.innerHTML = `<div class="text-muted small">No SHAP data available.</div>`;
+      return;
+    }
+
+    const maxVal = Math.max(...features.map(f => f.importance));
+
+    container.innerHTML = features.slice(0, 10).map((f, i) => {
+      const pct = maxVal > 0 ? (f.importance / maxVal * 100) : 0;
+      return `
+        <div class="mb-2">
+          <div class="d-flex justify-content-between align-items-center small mb-1">
+            <span class="fw-semibold">#${i + 1} ${f.label}</span>
+            <span class="text-muted fw-bold">${f.importance}</span>
+          </div>
+          <div class="progress" style="height: 6px; background: rgba(138, 107, 85, 0.12);">
+            <div class="progress-bar" style="width: ${pct}%; background: linear-gradient(90deg, var(--brand-espresso), var(--accent-amber));"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderClustersList(clusters) {
+    const container = document.getElementById("clustersDistributionList");
+    if (!clusters || clusters.length === 0) {
+      container.innerHTML = `<div class="text-muted small">No cluster data available.</div>`;
+      return;
+    }
+
+    container.innerHTML = clusters.map(c => `
+      <div class="p-3 mb-2" style="background: rgba(255, 255, 255, 0.7); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="fw-bold small text-espresso">${c.name}</span>
+          <span class="badge" style="background: var(--brand-espresso); color: #fff;">${c.count} students (${c.percentage}%)</span>
+        </div>
+        <div class="progress" style="height: 6px; background: rgba(138, 107, 85, 0.15);">
+          <div class="progress-bar" style="width: ${c.percentage}%; background: var(--accent-amber);"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderClassesTable(classes) {
+    const tbody = document.getElementById("classesTbody");
+    tbody.innerHTML = classes.map(c => `
+      <tr>
+        <td class="fw-bold">${c.name}</td>
+        <td>${c.teacher_name}</td>
+        <td class="text-muted small">${c.teacher_email}</td>
+        <td><span class="badge bg-light text-dark">${c.student_count}</span></td>
+        <td><strong style="color: var(--brand-espresso);">${c.avg_predicted_score}</strong></td>
+        <td><span class="badge ${c.avg_attendance_pct >= 85 ? 'badge-on-track' : 'badge-needs-monitoring'}">${c.avg_attendance_pct}%</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderTeachersTable(teachers) {
+    const tbody = document.getElementById("teachersTbody");
+    tbody.innerHTML = teachers.map(t => `
+      <tr>
+        <td class="fw-bold">${t.full_name}</td>
+        <td class="text-muted small">${t.email}</td>
+        <td><span class="badge" style="background: rgba(217, 119, 6, 0.15); color: var(--accent-amber);">${t.assigned_class}</span></td>
+        <td><span class="badge bg-success-subtle text-success">Active</span></td>
+      </tr>
+    `).join('');
+  }
+
+  async function handleRetrainPipeline() {
+    const btn = document.getElementById("adminRetrainBtn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Training All 3 Models...`;
+
+    try {
+      const res = await authFetch("/api/admin/ml/retrain", { method: "POST" });
+      if (res && res.ok) {
+        const data = await res.json();
+        showToast("ML models successfully retrained and serialized!", "Retraining Complete");
+
+        // Show metrics summary
+        document.getElementById("resR2").textContent = data.metrics.regressor_r2;
+        document.getElementById("resAcc").textContent = data.metrics.classifier_accuracy;
+        document.getElementById("resF1").textContent = data.metrics.classifier_macro_f1;
+        document.getElementById("resSil").textContent = data.metrics.clustering_silhouette;
+        document.getElementById("retrainMetricsAlert").classList.remove("d-none");
+
+        loadAdminDashboard();
+      } else {
+        const err = await res.json();
+        showToast(err.detail || "Retraining failed", "Error", true);
+      }
+    } catch (e) {
+      showToast(e.message, "Error", true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-arrow-repeat me-1"></i> Trigger One-Click Retraining`;
+    }
+  }
+</script>
+{% endblock %}

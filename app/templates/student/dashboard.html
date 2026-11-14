@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block title %}My Development Dashboard | Student Development System{% endblock %}
+
+{% block nav_links %}
+<li class="nav-item">
+  <a class="nav-link active" href="/student"><i class="bi bi-house-door-fill me-1"></i> My Growth Overview</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#scoresSection"><i class="bi bi-award-fill me-1"></i> Academic Marks</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#attendanceSection"><i class="bi bi-calendar-check-fill me-1"></i> Attendance</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#activitiesSection"><i class="bi bi-star-fill me-1"></i> Co-Curriculars</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<!-- Student Welcome Banner -->
+<div class="glass-panel p-4 mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="brand-icon" style="width: 56px; height: 56px; font-size: 1.8rem; background: linear-gradient(135deg, var(--status-on-track-accent), var(--accent-amber));">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div>
+        <h1 class="h3 mb-0 fw-bold">Hello, <span id="studentHelloName">Student</span>!</h1>
+        <p class="text-secondary small mb-0">
+          Roll No: <strong id="studentRoll">--</strong> | Class: <strong id="studentClass">--</strong> | Academic Year 2024-25
+        </p>
+      </div>
+    </div>
+    
+    <div>
+      <span class="badge py-2 px-3 fs-6" id="studentRiskBadge">--</span>
+    </div>
+  </div>
+</div>
+
+<!-- Compact Collapsible Announcements & Bulletins Bar -->
+<div id="studentAnnouncementsCard" class="glass-panel p-2 p-md-3 mb-4 d-none" style="border-left: 4px solid var(--accent-amber);">
+  <div class="d-flex justify-content-between align-items-center announcement-banner-header p-1" 
+       onclick="toggleStudentAnnouncements()" 
+       role="button" 
+       tabindex="0"
+       title="Click to view or hide announcements">
+    <div class="d-flex align-items-center gap-2">
+      <div class="demo-icon-badge" style="width: 34px; height: 34px; font-size: 1.05rem; border-radius: 8px;">
+        <i class="bi bi-megaphone-fill"></i>
+      </div>
+      <div>
+        <span class="fw-bold fs-6 text-espresso me-2">Class & School Bulletins</span>
+        <span class="badge" id="announcementsCountBadge" style="background: var(--brand-espresso); color: #fff; font-size: 0.72rem;">0 Bulletins</span>
+        <span class="badge d-none ms-1" id="announcementsUrgentBadge" style="background: var(--status-support-bg); color: var(--status-support-text); border: 1px solid var(--status-support-border); font-size: 0.70rem;">
+          <i class="bi bi-exclamation-diamond-fill me-1"></i>Urgent
+        </span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-glass btn-sm py-1 px-3 d-flex align-items-center gap-1" style="font-size: 0.80rem;" id="studentAnnToggleBtn">
+        <span id="studentAnnToggleText">View</span>
+        <i class="bi bi-chevron-down ms-1" id="studentAnnChevron"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Collapsible Content Feed -->
+  <div id="studentAnnouncementsCollapse" class="collapse mt-2 pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+    <div id="studentAnnouncementsFeed" class="d-flex flex-column gap-2">
+      <div class="text-muted small">Loading bulletins...</div>
+    </div>
+    <div class="text-center mt-2 pt-1">
+      <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none py-0" style="font-size: 0.76rem;" onclick="toggleStudentAnnouncements()">
+        <i class="bi bi-chevron-up me-1"></i> Collapse Bulletins
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Prediction & Insights Highlight Section -->
+<div class="row g-3 mb-4">
+  <!-- Card 1: Forecast Score & Development Profile -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-cpu-fill me-1" style="color: var(--accent-amber);"></i> AI Performance Projection</h3>
+      
+      <div class="text-center my-3">
+        <div class="display-3 fw-bold" style="color: var(--brand-espresso);" id="studentPredictedScore">--</div>
+        <div class="text-muted small">Projected Final Score (out of 100)</div>
+      </div>
+
+      <div class="p-3 mb-3" style="background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="small fw-semibold text-secondary">Development Profile:</span>
+          <span class="badge" style="background: var(--brand-espresso); color: #fff;" id="studentClusterName">--</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small fw-semibold text-secondary">Current Status:</span>
+          <span class="fw-bold" id="studentStatusText">--</span>
+        </div>
+      </div>
+
+      <div class="ethics-banner">
+        <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+        <span>This forecast is a supportive decision-aid to help you reach your maximum potential.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: SHAP Factor Analysis (Strengths & Growth Areas) -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-2"><i class="bi bi-sliders me-1" style="color: var(--accent-amber);"></i> Influential Factors</h3>
+      <p class="text-muted small mb-3">What is helping you succeed and where you can focus next:</p>
+
+      <div class="mb-3">
+        <div class="small fw-bold text-success mb-2"><i class="bi bi-patch-check-fill me-1"></i> Your Top Strengths:</div>
+        <div id="studentStrengthsList">
+          <div class="text-muted small">Loading strengths...</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="small fw-bold text-danger mb-2"><i class="bi bi-compass-fill me-1"></i> Focus Opportunities:</div>
+        <div id="studentOpportunitiesList">
+          <div class="text-muted small">Loading focus areas...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: Personalized Recommendations Checklist -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h3 class="h6 fw-bold text-uppercase text-secondary mb-0"><i class="bi bi-lightbulb-fill me-1" style="color: var(--accent-amber);"></i> Action Recommendations</h3>
+        <span class="badge bg-light text-dark" id="studentRecsCount">0 actions</span>
+      </div>
+      <p class="text-muted small mb-3">Positive, achievable steps tailored to your growth:</p>
+
+      <div id="studentRecsContainer" style="max-height: 380px; overflow-y: auto;">
+        <div class="text-muted small">Loading recommendations...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Academic & Attendance Analytics -->
+<div class="row g-3 mb-4">
+  <!-- Subject Performance Chart -->
+  <div class="col-12 col-lg-7" id="scoresSection">
+    <div class="glass-panel p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 fw-bold text-uppercase text-secondary mb-0"><i class="bi bi-bar-chart-line-fill me-1" style="color: var(--accent-amber);"></i> Subject-Wise Exam Performance</h3>
+        <span class="text-muted small" id="overallScoreAvgSpan">Avg: --%</span>
+      </div>
+      <div style="height: 250px; position: relative;">
+        <canvas id="studentScoresChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Line Progression -->
+  <div class="col-12 col-lg-5" id="attendanceSection">
+    <div class="glass-panel p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 fw-bold text-uppercase text-secondary mb-0"><i class="bi bi-calendar2-check-fill me-1" style="color: var(--accent-amber);"></i> Monthly Attendance Record</h3>
+        <span class="badge badge-on-track" id="overallAttBadge">--%</span>
+      </div>
+      <div style="height: 250px; position: relative;">
+        <canvas id="studentAttendanceChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Co-Curriculars, Projects & Competitions -->
+<div class="glass-panel p-4 mb-4" id="activitiesSection">
+  <h3 class="h5 fw-bold mb-3"><i class="bi bi-star-fill me-2" style="color: var(--accent-amber);"></i> Holistic Projects & Co-Curricular Engagement</h3>
+  
+  <div class="row g-3">
+    <!-- Projects -->
+    <div class="col-12 col-md-4">
+      <div class="p-3" style="background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); height: 100%;">
+        <div class="fw-bold small text-uppercase text-secondary mb-2"><i class="bi bi-laptop me-1"></i> Class Projects</div>
+        <div id="projectsList">
+          <div class="text-muted small">Loading projects...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extracurriculars -->
+    <div class="col-12 col-md-4">
+      <div class="p-3" style="background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); height: 100%;">
+        <div class="fw-bold small text-uppercase text-secondary mb-2"><i class="bi bi-palette me-1"></i> Activities & Clubs</div>
+        <div id="activitiesList">
+          <div class="text-muted small">Loading activities...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Competitions -->
+    <div class="col-12 col-md-4">
+      <div class="p-3" style="background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); height: 100%;">
+        <div class="fw-bold small text-uppercase text-secondary mb-2"><i class="bi bi-trophy me-1"></i> Competitions</div>
+        <div id="competitionsList">
+          <div class="text-muted small">Loading competitions...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  let scoresChart = null;
+  let attChart = null;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadStudentDashboard();
+  });
+
+  async function loadStudentDashboard() {
+    try {
+      // 1. Profile
+      const profRes = await authFetch("/api/student/me/profile");
+      if (profRes && profRes.ok) {
+        const p = await profRes.json();
+        document.getElementById("studentHelloName").textContent = p.full_name;
+        document.getElementById("studentRoll").textContent = p.roll_number;
+        document.getElementById("studentClass").textContent = p.class_name;
+      }
+
+      // 2. Insights
+      const insightsRes = await authFetch("/api/student/me/insights?term=Term 1");
+      if (insightsRes && insightsRes.ok) {
+        const ins = await insightsRes.json();
+        renderStudentInsights(ins);
+      }
+
+      // 3. Scores
+      const scoresRes = await authFetch("/api/student/me/scores");
+      if (scoresRes && scoresRes.ok) {
+        const sc = await scoresRes.json();
+        renderScoresChart(sc);
+      }
+
+      // 4. Attendance
+      const attRes = await authFetch("/api/student/me/attendance");
+      if (attRes && attRes.ok) {
+        const att = await attRes.json();
+        renderAttendanceChart(att);
+      }
+
+      // 5. Activities
+      const actRes = await authFetch("/api/student/me/activities");
+      if (actRes && actRes.ok) {
+        const acts = await actRes.json();
+        renderActivitiesCards(acts);
+      }
+
+      // 6. Announcements
+      await loadStudentAnnouncements();
+
+    } catch (e) {
+      showToast(e.message, "Error loading dashboard", true);
+    }
+  }
+
+  function toggleStudentAnnouncements() {
+    const collapseEl = document.getElementById("studentAnnouncementsCollapse");
+    const textEl = document.getElementById("studentAnnToggleText");
+    const chevEl = document.getElementById("studentAnnChevron");
+    if (!collapseEl) return;
+
+    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+    if (collapseEl.classList.contains("show")) {
+      bsCollapse.hide();
+      if (textEl) textEl.textContent = "View";
+      if (chevEl) chevEl.className = "bi bi-chevron-down ms-1";
+    } else {
+      bsCollapse.show();
+      if (textEl) textEl.textContent = "Hide";
+      if (chevEl) chevEl.className = "bi bi-chevron-up ms-1";
+    }
+  }
+
+  async function loadStudentAnnouncements() {
+    try {
+      const res = await authFetch("/api/announcements");
+      if (res && res.ok) {
+        const items = await res.json();
+        const card = document.getElementById("studentAnnouncementsCard");
+        const feed = document.getElementById("studentAnnouncementsFeed");
+        const countBadge = document.getElementById("announcementsCountBadge");
+        const urgentBadge = document.getElementById("announcementsUrgentBadge");
+        
+        if (!items || items.length === 0) {
+          card.classList.add("d-none");
+          return;
+        }
+
+        card.classList.remove("d-none");
+        countBadge.textContent = `${items.length} Bulletin${items.length === 1 ? '' : 's'}`;
+
+        const hasUrgent = items.some(a => a.priority === "urgent");
+        if (urgentBadge) {
+          if (hasUrgent) urgentBadge.classList.remove("d-none");
+          else urgentBadge.classList.add("d-none");
+        }
+
+        feed.innerHTML = items.map(a => {
+          let priorityBadge = '';
+          if (a.priority === "urgent") {
+            priorityBadge = `<span class="badge" style="background: var(--status-support-bg); color: var(--status-support-text); border: 1px solid var(--status-support-border);"><i class="bi bi-exclamation-diamond-fill me-1"></i>Urgent</span>`;
+          } else if (a.priority === "important") {
+            priorityBadge = `<span class="badge" style="background: var(--status-monitoring-bg); color: var(--status-monitoring-text); border: 1px solid var(--status-monitoring-border);"><i class="bi bi-star-fill me-1"></i>Important</span>`;
+          } else {
+            priorityBadge = `<span class="badge bg-light text-secondary border">Notice</span>`;
+          }
+
+          let scopeLabel = a.class_name ? `Class: ${a.class_name}` : (a.target_audience === 'all' ? 'School-Wide' : 'Student Cohort');
+
+          return `
+            <div class="p-3 bg-white rounded-3 border" style="box-shadow: 0 2px 6px rgba(42, 29, 21, 0.04);">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-bold fs-6 text-espresso">${a.title}</span>
+                  ${priorityBadge}
+                  <span class="badge" style="background: rgba(217, 119, 6, 0.12); color: var(--accent-amber); font-size: 0.72rem;">${scopeLabel}</span>
+                </div>
+                <div class="text-muted small">
+                  <i class="bi bi-clock me-1"></i>${a.created_at}
+                </div>
+              </div>
+              <p class="mb-1 text-secondary small" style="white-space: pre-wrap; line-height: 1.5;">${a.content}</p>
+              <div class="text-end text-muted" style="font-size: 0.74rem;">
+                Posted by: <strong>${a.author_name}</strong> (${a.author_role.toUpperCase()})
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch (e) {
+      console.warn("Could not load announcements", e);
+    }
+  }
+
+  function renderStudentInsights(data) {
+    document.getElementById("studentPredictedScore").textContent = data.predicted_score;
+    document.getElementById("studentClusterName").textContent = data.cluster_name;
+    document.getElementById("studentStatusText").textContent = data.risk_category;
+
+    const badge = document.getElementById("studentRiskBadge");
+    if (data.risk_category === "On Track") {
+      badge.className = "badge badge-on-track py-2 px-3 fs-6";
+      badge.innerHTML = `<span class="status-dot status-dot-track"></span> On Track`;
+    } else if (data.risk_category === "Needs Monitoring") {
+      badge.className = "badge badge-needs-monitoring py-2 px-3 fs-6";
+      badge.innerHTML = `<span class="status-dot status-dot-monitoring"></span> Needs Monitoring`;
+    } else {
+      badge.className = "badge badge-needs-support py-2 px-3 fs-6";
+      badge.innerHTML = `<span class="status-dot status-dot-support"></span> Needs Support`;
+    }
+
+    // Strengths (SHAP positive)
+    const strList = document.getElementById("studentStrengthsList");
+    if (data.shap.top_positive && data.shap.top_positive.length > 0) {
+      strList.innerHTML = data.shap.top_positive.map(f => `
+        <div class="d-flex justify-content-between align-items-center mb-1 small">
+          <span>${f.label} (${f.value})</span>
+          <span class="fw-bold text-success">+${f.shap_value}</span>
+        </div>
+      `).join('');
+    } else {
+      strList.innerHTML = `<div class="text-muted small">Balanced performance.</div>`;
+    }
+
+    // Focus areas (SHAP negative)
+    const oppList = document.getElementById("studentOpportunitiesList");
+    if (data.shap.top_negative && data.shap.top_negative.length > 0) {
+      oppList.innerHTML = data.shap.top_negative.map(f => `
+        <div class="d-flex justify-content-between align-items-center mb-1 small">
+          <span>${f.label} (${f.value})</span>
+          <span class="fw-bold text-danger">${f.shap_value}</span>
+        </div>
+      `).join('');
+    } else {
+      oppList.innerHTML = `<div class="text-muted small">No immediate obstacles flagged.</div>`;
+    }
+
+    // Recommendations
+    const recsContainer = document.getElementById("studentRecsContainer");
+    document.getElementById("studentRecsCount").textContent = `${data.recommendations.length} items`;
+    if (data.recommendations && data.recommendations.length > 0) {
+      recsContainer.innerHTML = data.recommendations.map(r => `
+        <div class="rec-card rec-priority-${r.priority}">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-bold small" style="color: var(--brand-espresso);">${r.category}</span>
+            <span class="badge ${r.priority === 1 ? 'bg-danger-subtle text-danger' : r.priority === 2 ? 'bg-warning-subtle text-warning-emphasis' : 'bg-success-subtle text-success'} py-0" style="font-size: 0.72rem;">Priority ${r.priority}</span>
+          </div>
+          <p class="small text-secondary mb-0">${r.text}</p>
+        </div>
+      `).join('');
+    } else {
+      recsContainer.innerHTML = `<div class="text-muted small">No specific recommendations at this time. Keep up the good work!</div>`;
+    }
+  }
+
+  function renderScoresChart(data) {
+    document.getElementById("overallScoreAvgSpan").textContent = `Overall Average: ${data.overall_average}%`;
+    const ctx = document.getElementById("studentScoresChart").getContext("2d");
+    if (scoresChart) scoresChart.destroy();
+
+    const labels = Object.keys(data.subject_averages || {});
+    const vals = Object.values(data.subject_averages || {});
+
+    scoresChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Subject Average (%)",
+          data: vals,
+          backgroundColor: "rgba(217, 119, 6, 0.8)",
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, grid: { color: "rgba(138, 107, 85, 0.1)" } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderAttendanceChart(data) {
+    document.getElementById("overallAttBadge").textContent = `${data.overall_percentage}% Attendance`;
+    const ctx = document.getElementById("studentAttendanceChart").getContext("2d");
+    if (attChart) attChart.destroy();
+
+    const labels = data.records.map(r => r.month);
+    const vals = data.records.map(r => r.percentage);
+
+    attChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Monthly %",
+          data: vals,
+          borderColor: "#2d6a4f",
+          backgroundColor: "rgba(45, 106, 79, 0.12)",
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: "#2d6a4f",
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 50, max: 100, grid: { color: "rgba(138, 107, 85, 0.1)" } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderActivitiesCards(data) {
+    // Projects
+    const pContainer = document.getElementById("projectsList");
+    if (data.projects && data.projects.length > 0) {
+      pContainer.innerHTML = data.projects.map(p => `
+        <div class="mb-2 pb-2 border-bottom border-light">
+          <div class="fw-semibold small">${p.title}</div>
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.78rem;">
+            <span>Role: ${p.role}</span>
+            <span>Score: ${p.score}</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      pContainer.innerHTML = `<div class="text-muted small">No projects enrolled.</div>`;
+    }
+
+    // Activities
+    const aContainer = document.getElementById("activitiesList");
+    if (data.extracurriculars && data.extracurriculars.length > 0) {
+      aContainer.innerHTML = data.extracurriculars.map(a => `
+        <div class="mb-2 pb-2 border-bottom border-light">
+          <div class="fw-semibold small">${a.activity_name}</div>
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.78rem;">
+            <span>Category: ${a.category}</span>
+            <span>${a.hours_per_month} hrs/mo</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      aContainer.innerHTML = `<div class="text-muted small">No activities logged.</div>`;
+    }
+
+    // Competitions
+    const cContainer = document.getElementById("competitionsList");
+    if (data.competitions && data.competitions.length > 0) {
+      cContainer.innerHTML = data.competitions.map(c => `
+        <div class="mb-2 pb-2 border-bottom border-light">
+          <div class="fw-semibold small">${c.name}</div>
+          <div class="d-flex justify-content-between text-muted" style="font-size: 0.78rem;">
+            <span>Level: ${c.level}</span>
+            <span class="badge ${c.result === 'winner' ? 'bg-success' : 'bg-secondary'}">${c.result}</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      cContainer.innerHTML = `<div class="text-muted small">No competitions logged.</div>`;
+    }
+  }
+</script>
+{% endblock %}

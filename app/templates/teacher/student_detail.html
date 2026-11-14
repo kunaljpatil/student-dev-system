@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block title %}Student Insights | Student Development System{% endblock %}
+
+{% block nav_links %}
+<li class="nav-item">
+  <a class="nav-link" href="/teacher"><i class="bi bi-arrow-left me-1"></i> Back to Class Roster</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<input type="hidden" id="studentIdHidden" value="{{ student_id }}">
+
+<!-- Student Profile Header -->
+<div class="glass-panel p-4 mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="brand-icon" style="width: 56px; height: 56px; font-size: 1.7rem; background: linear-gradient(135deg, var(--brand-espresso), var(--accent-amber));">
+        <i class="bi bi-person-fill"></i>
+      </div>
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h3 mb-0 fw-bold" id="detailStudentName">Loading Student...</h2>
+          <span id="detailRiskBadge" class="badge">--</span>
+        </div>
+        <p class="text-secondary small mb-0">
+          Roll No: <strong id="detailRoll">--</strong> | Class: <strong id="detailClass">--</strong> | Email: <span id="detailEmail">--</span>
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <button id="repredictBtn" class="btn btn-amber" onclick="triggerSinglePredict()">
+        <i class="bi bi-cpu-fill me-1"></i> Re-Calculate AI Insights (SHAP)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Row: Prediction Forecast, Development Profile, and Recommendations -->
+<div class="row g-3 mb-4">
+  <!-- Card 1: Prediction & Category -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-graph-up me-1" style="color: var(--accent-amber);"></i> Model Forecast</h3>
+      
+      <div class="text-center my-3">
+        <div class="display-3 fw-bold" style="color: var(--brand-espresso);" id="detailPredScore">--</div>
+        <div class="text-muted small">Predicted Final Assessment Score (out of 100)</div>
+      </div>
+
+      <div class="p-3 mb-3" style="background: rgba(255, 255, 255, 0.6); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="small fw-semibold text-secondary">Development Profile:</span>
+          <span class="badge" style="background: var(--brand-espresso); color: #fff;" id="detailClusterName">--</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small fw-semibold text-secondary">Support Tier:</span>
+          <span class="fw-bold" id="detailRiskTier">--</span>
+        </div>
+      </div>
+
+      <div class="ethics-banner">
+        <i class="bi bi-shield-check-fill text-success fs-5"></i>
+        <span>Algorithmic decision-support intended for constructive growth, not definitive grading.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: SHAP Factor Analysis -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-2"><i class="bi bi-sliders me-1" style="color: var(--accent-amber);"></i> SHAP Contributing Factors</h3>
+      <p class="text-muted small mb-3">Key drivers positively lifting (+) or pulling down (-) this prediction:</p>
+
+      <div class="mb-3">
+        <div class="small fw-bold text-success mb-2"><i class="bi bi-arrow-up-circle-fill me-1"></i> Top Positive Contributors:</div>
+        <div id="positiveFactorsList">
+          <div class="text-muted small">Loading...</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="small fw-bold text-danger mb-2"><i class="bi bi-arrow-down-circle-fill me-1"></i> Priority Focus Areas:</div>
+        <div id="negativeFactorsList">
+          <div class="text-muted small">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: Prioritized Recommendations -->
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 fw-bold text-uppercase text-secondary mb-0"><i class="bi bi-lightbulb-fill me-1" style="color: var(--accent-amber);"></i> Action Recommendations</h3>
+        <span class="badge bg-light text-dark" id="recsCountBadge">0 items</span>
+      </div>
+      <p class="text-muted small mb-3">Targeted, positive interventions prioritized by impact:</p>
+
+      <div id="recommendationsListContainer" style="max-height: 380px; overflow-y: auto;">
+        <div class="text-muted small">Loading recommendations...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Multidimensional Records Tabs -->
+<div class="glass-panel p-4">
+  <h3 class="h5 fw-bold mb-3"><i class="bi bi-journal-text me-2" style="color: var(--brand-espresso);"></i> Multidimensional Record History</h3>
+  
+  <ul class="nav nav-pills mb-3 gap-2" id="detailTabs">
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabScores">Exam Scores</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabAttendance">Monthly Attendance</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabAssignments">Assignments & Projects</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabActivities">Extracurriculars & Competitions</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabIndicators">Development Indicators</button>
+    </li>
+  </ul>
+
+  <div class="tab-content pt-2">
+    <!-- Scores Tab -->
+    <div class="tab-pane fade show active" id="tabScores">
+      <div class="table-responsive">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Assessment Type</th>
+              <th>Score</th>
+              <th>Max Score</th>
+              <th>Term</th>
+            </tr>
+          </thead>
+          <tbody id="scoresTbody">
+            <tr><td colspan="5" class="text-center py-3 text-muted">Loading exam scores...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Attendance Tab -->
+    <div class="tab-pane fade" id="tabAttendance">
+      <div class="table-responsive">
+        <table class="glass-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Days Present</th>
+              <th>Days Total</th>
+              <th>Percentage</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTbody">
+            <tr><td colspan="4" class="text-center py-3 text-muted">Loading attendance records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Assignments & Projects Tab -->
+    <div class="tab-pane fade" id="tabAssignments">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <h4 class="h6 fw-bold mb-2">Assignments</h4>
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead><tr><th>Subject</th><th>Title</th><th>Score</th><th>On-Time</th></tr></thead>
+              <tbody id="assignmentsTbody"><tr><td colspan="4" class="text-muted py-2">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <h4 class="h6 fw-bold mb-2">Projects</h4>
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead><tr><th>Title</th><th>Role</th><th>Score</th><th>Term</th></tr></thead>
+              <tbody id="projectsTbody"><tr><td colspan="4" class="text-muted py-2">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activities & Competitions Tab -->
+    <div class="tab-pane fade" id="tabActivities">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <h4 class="h6 fw-bold mb-2">Extracurricular Activities</h4>
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead><tr><th>Activity</th><th>Category</th><th>Hrs/mo</th></tr></thead>
+              <tbody id="activitiesTbody"><tr><td colspan="3" class="text-muted py-2">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <h4 class="h6 fw-bold mb-2">Competitions</h4>
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead><tr><th>Competition</th><th>Level</th><th>Result</th></tr></thead>
+              <tbody id="competitionsTbody"><tr><td colspan="3" class="text-muted py-2">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicators Tab -->
+    <div class="tab-pane fade" id="tabIndicators">
+      <div class="table-responsive">
+        <table class="glass-table">
+          <thead><tr><th>Term</th><th>Communication</th><th>Presentation</th><th>Confidence</th><th>Participation</th><th>Teamwork</th></tr></thead>
+          <tbody id="indicatorsTbody"><tr><td colspan="6" class="text-muted py-2">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  const studentId = document.getElementById("studentIdHidden").value;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadStudentDetails();
+    loadStudentInsights();
+  });
+
+  async function loadStudentDetails() {
+    try {
+      const res = await authFetch(`/api/teacher/students/${studentId}`);
+      if (res && res.ok) {
+        const data = await res.json();
+        document.getElementById("detailStudentName").textContent = data.student.full_name;
+        document.getElementById("detailRoll").textContent = data.student.roll_no;
+        document.getElementById("detailClass").textContent = data.student.class_name;
+        document.getElementById("detailEmail").textContent = data.student.email;
+
+        // Render Tables
+        renderScores(data.scores);
+        renderAttendance(data.attendance);
+        renderAssignments(data.assignments);
+        renderProjects(data.projects);
+        renderActivities(data.activities);
+        renderCompetitions(data.competitions);
+        renderIndicators(data.indicators);
+      }
+    } catch (e) {
+      showToast(e.message, "Error", true);
+    }
+  }
+
+  async function loadStudentInsights() {
+    try {
+      const res = await authFetch(`/api/teacher/students/${studentId}/insights?term=Term 1`);
+      if (res && res.ok) {
+        const insights = await res.json();
+        renderInsightsData(insights);
+      }
+    } catch (e) {
+      showToast(e.message, "Insights Error", true);
+    }
+  }
+
+  function renderInsightsData(data) {
+    document.getElementById("detailPredScore").textContent = data.predicted_score;
+    document.getElementById("detailClusterName").textContent = data.cluster_name;
+    document.getElementById("detailRiskTier").textContent = data.risk_category;
+
+    const badge = document.getElementById("detailRiskBadge");
+    if (data.risk_category === "On Track") {
+      badge.className = "badge badge-on-track";
+      badge.innerHTML = `<span class="status-dot status-dot-track"></span> On Track`;
+    } else if (data.risk_category === "Needs Monitoring") {
+      badge.className = "badge badge-needs-monitoring";
+      badge.innerHTML = `<span class="status-dot status-dot-monitoring"></span> Needs Monitoring`;
+    } else {
+      badge.className = "badge badge-needs-support";
+      badge.innerHTML = `<span class="status-dot status-dot-support"></span> Needs Support`;
+    }
+
+    // SHAP factors
+    const posContainer = document.getElementById("positiveFactorsList");
+    const negContainer = document.getElementById("negativeFactorsList");
+
+    if (data.shap.top_positive && data.shap.top_positive.length > 0) {
+      posContainer.innerHTML = data.shap.top_positive.map(f => `
+        <div class="d-flex justify-content-between align-items-center mb-1 small">
+          <span>${f.label} (${f.value})</span>
+          <span class="fw-bold text-success">+${f.shap_value}</span>
+        </div>
+      `).join('');
+    } else {
+      posContainer.innerHTML = `<div class="text-muted small">No significant positive drivers detected.</div>`;
+    }
+
+    if (data.shap.top_negative && data.shap.top_negative.length > 0) {
+      negContainer.innerHTML = data.shap.top_negative.map(f => `
+        <div class="d-flex justify-content-between align-items-center mb-1 small">
+          <span>${f.label} (${f.value})</span>
+          <span class="fw-bold text-danger">${f.shap_value}</span>
+        </div>
+      `).join('');
+    } else {
+      negContainer.innerHTML = `<div class="text-muted small">No negative factors flagged.</div>`;
+    }
+
+    // Recommendations
+    const recsContainer = document.getElementById("recommendationsListContainer");
+    const recsCount = document.getElementById("recsCountBadge");
+    recsCount.textContent = `${data.recommendations.length} action(s)`;
+
+    if (data.recommendations && data.recommendations.length > 0) {
+      recsContainer.innerHTML = data.recommendations.map(r => `
+        <div class="rec-card rec-priority-${r.priority}">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fw-bold small" style="color: var(--brand-espresso);">${r.category}</span>
+            <span class="badge ${r.priority === 1 ? 'bg-danger-subtle text-danger' : r.priority === 2 ? 'bg-warning-subtle text-warning-emphasis' : 'bg-success-subtle text-success'} py-0" style="font-size: 0.72rem;">Priority ${r.priority}</span>
+          </div>
+          <p class="small text-secondary mb-0">${r.text}</p>
+        </div>
+      `).join('');
+    } else {
+      recsContainer.innerHTML = `<div class="text-muted small">No action items required.</div>`;
+    }
+  }
+
+  async function triggerSinglePredict() {
+    const btn = document.getElementById("repredictBtn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Calculating...`;
+
+    try {
+      const res = await authFetch(`/api/ml/predict/${studentId}?term=Term 1`, { method: "POST" });
+      if (res && res.ok) {
+        showToast("AI predictions & SHAP explanations updated!", "Prediction Complete");
+        const fresh = await res.json();
+        renderInsightsData(fresh);
+      }
+    } catch (e) {
+      showToast(e.message, "Error", true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-cpu-fill me-1"></i> Re-Calculate AI Insights (SHAP)`;
+    }
+  }
+
+  // --- Render Detail Tables ---
+  function renderScores(items) {
+    const tbody = document.getElementById("scoresTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="text-muted text-center py-2">No scores recorded</td></tr>`; return; }
+    tbody.innerHTML = items.map(s => `<tr><td class="fw-bold">${s.subject_name}</td><td>${s.exam_type}</td><td><strong>${s.score}</strong></td><td>${s.max_score}</td><td>${s.term}</td></tr>`).join('');
+  }
+
+  function renderAttendance(items) {
+    const tbody = document.getElementById("attendanceTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center py-2">No attendance records</td></tr>`; return; }
+    tbody.innerHTML = items.map(a => `<tr><td>${a.month}</td><td>${a.days_present}</td><td>${a.days_total}</td><td><span class="badge ${a.pct >= 85 ? 'badge-on-track' : 'badge-needs-monitoring'}">${a.pct}%</span></td></tr>`).join('');
+  }
+
+  function renderAssignments(items) {
+    const tbody = document.getElementById("assignmentsTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center py-2">No assignments</td></tr>`; return; }
+    tbody.innerHTML = items.map(a => `<tr><td>${a.subject_name}</td><td>${a.title}</td><td>${a.score}</td><td>${a.submitted_on_time ? '<i class="bi bi-check-lg text-success"></i>' : '<i class="bi bi-x-lg text-danger"></i>'}</td></tr>`).join('');
+  }
+
+  function renderProjects(items) {
+    const tbody = document.getElementById("projectsTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center py-2">No projects recorded</td></tr>`; return; }
+    tbody.innerHTML = items.map(p => `<tr><td>${p.title}</td><td><span class="badge ${p.role === 'lead' ? 'btn-amber' : 'bg-light text-dark'}">${p.role}</span></td><td>${p.score}</td><td>${p.term}</td></tr>`).join('');
+  }
+
+  function renderActivities(items) {
+    const tbody = document.getElementById("activitiesTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="text-muted text-center py-2">No extracurriculars</td></tr>`; return; }
+    tbody.innerHTML = items.map(a => `<tr><td>${a.activity_name}</td><td>${a.category}</td><td>${a.hours} hrs</td></tr>`).join('');
+  }
+
+  function renderCompetitions(items) {
+    const tbody = document.getElementById("competitionsTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="text-muted text-center py-2">No competitions</td></tr>`; return; }
+    tbody.innerHTML = items.map(c => `<tr><td>${c.name}</td><td>${c.level}</td><td><span class="badge ${c.result === 'winner' ? 'badge-on-track' : 'bg-light text-dark'}">${c.result}</span></td></tr>`).join('');
+  }
+
+  function renderIndicators(items) {
+    const tbody = document.getElementById("indicatorsTbody");
+    if (!items || items.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center py-2">No indicators recorded</td></tr>`; return; }
+    tbody.innerHTML = items.map(i => `<tr><td>${i.term}</td><td>${i.communication}/5</td><td>${i.presentation}/5</td><td>${i.confidence}/5</td><td>${i.participation}/5</td><td>${i.teamwork}/5</td></tr>`).join('');
+  }
+</script>
+{% endblock %}

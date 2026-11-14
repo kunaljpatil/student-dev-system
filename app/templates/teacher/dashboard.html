@@ -1,0 +1,873 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard | Student Development System{% endblock %}
+
+{% block nav_links %}
+<li class="nav-item">
+  <a class="nav-link active" href="/teacher"><i class="bi bi-grid-fill me-1"></i> Class Overview</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#rosterSection"><i class="bi bi-people-fill me-1"></i> Student Roster</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="#analyticsSection"><i class="bi bi-bar-chart-line-fill me-1"></i> Class Analytics</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome & Header Action Bar -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge" style="background: var(--brand-espresso); color: #fff;">Faculty Portal</span>
+      <span id="classYearBadge" class="text-secondary small fw-semibold">Academic Year 2024-25</span>
+    </div>
+    <h1 class="h2 mb-0" id="classNameHeading">Class Overview</h1>
+    <p class="text-secondary mb-0 small">Holistic student growth tracking & decision-support predictions</p>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-glass" onclick="loadDashboardData()">
+      <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+    </button>
+    <button id="batchPredictBtn" class="btn btn-amber" onclick="handleBatchPredict()">
+      <i class="bi bi-cpu-fill me-1"></i> Re-Run Class AI Predictions
+    </button>
+  </div>
+</div>
+
+<!-- 4 Key Metric Glass Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Class Roster</div>
+          <div class="kpi-value" id="kpiStudentsCount">--</div>
+          <div class="kpi-subtext"><i class="bi bi-check-circle-fill text-success me-1"></i>Active Students</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-people"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Avg Predicted Score</div>
+          <div class="kpi-value" id="kpiAvgScore">--</div>
+          <div class="kpi-subtext" id="kpiAvgScoreSub">Out of 100 marks</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-graph-up-arrow"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Class Attendance</div>
+          <div class="kpi-value" id="kpiAttendance">--%</div>
+          <div class="kpi-subtext">Cohort Monthly Average</div>
+        </div>
+        <div class="kpi-icon-wrap"><i class="bi bi-calendar-check"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="glass-panel kpi-card" style="border-left: 4px solid var(--status-support-accent);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="kpi-title">Needs Attention</div>
+          <div class="kpi-value text-danger" id="kpiAttentionCount">--</div>
+          <div class="kpi-subtext"><a href="#attentionSection" class="text-decoration-none fw-semibold" style="color: var(--accent-amber);">Review Students &rarr;</a></div>
+        </div>
+        <div class="kpi-icon-wrap" style="background: rgba(225, 29, 72, 0.1); color: var(--status-support-accent);"><i class="bi bi-exclamation-octagon"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- "Needs Attention" Priority Panel -->
+<div id="attentionSection" class="glass-panel p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-bell-fill text-danger fs-5"></i>
+      <h3 class="h5 mb-0 fw-bold">Students Requiring Academic or Engagement Support</h3>
+    </div>
+    <span id="attentionBadge" class="badge" style="background: var(--status-support-bg); color: var(--status-support-text); border: 1px solid var(--status-support-border);">0 Identified</span>
+  </div>
+  <p class="text-secondary small mb-3">These students have been flagged by the classification model or attendance tracker for proactive supportive intervention.</p>
+  
+  <div id="attentionCardsRow" class="row g-3">
+    <div class="col-12 text-center py-3 text-muted">Loading attention priorities...</div>
+  </div>
+<!-- Compact Collapsible Class & School Announcements Bar -->
+<div class="glass-panel p-2 p-md-3 mb-4" id="teacherAnnouncementsSection" style="border-left: 4px solid var(--accent-amber);">
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 p-1 announcement-banner-header"
+       onclick="toggleTeacherAnnouncements(event)"
+       role="button"
+       tabindex="0"
+       title="Click to view or hide announcements">
+    <div class="d-flex align-items-center gap-2">
+      <div class="demo-icon-badge" style="width: 34px; height: 34px; font-size: 1.05rem; border-radius: 8px;">
+        <i class="bi bi-megaphone-fill"></i>
+      </div>
+      <div>
+        <span class="fw-bold fs-6 text-espresso me-2">Class Bulletins & Notices</span>
+        <span class="badge" id="teacherAnnCountBadge" style="background: var(--brand-espresso); color: #fff; font-size: 0.72rem;">0 Active</span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-amber btn-sm py-1 px-3" onclick="openCreateAnnouncementModal(event)">
+        <i class="bi bi-plus-circle me-1"></i> Post Announcement
+      </button>
+      <button type="button" class="btn btn-outline-glass btn-sm py-1 px-2 d-flex align-items-center gap-1" style="font-size: 0.80rem;" id="teacherAnnToggleBtn">
+        <span id="teacherAnnToggleText">View</span>
+        <i class="bi bi-chevron-down ms-1" id="teacherAnnChevron"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Collapsible Content Feed -->
+  <div id="teacherAnnouncementsCollapse" class="collapse mt-2 pt-2 border-top" style="border-color: var(--border-subtle) !important;">
+    <p class="text-secondary small mb-3">Post updates, quiz reminders, or study instructions for your enrolled class. Notices appear immediately on student dashboards.</p>
+    <div id="teacherAnnouncementsFeed" class="d-flex flex-column gap-2">
+      <div class="text-muted small">Loading bulletins...</div>
+    </div>
+    <div class="text-center mt-2 pt-1">
+      <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none py-0" style="font-size: 0.76rem;" onclick="toggleTeacherAnnouncements()">
+        <i class="bi bi-chevron-up me-1"></i> Collapse Bulletins
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Class Analytics Charts Section -->
+<div id="analyticsSection" class="row g-3 mb-4">
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-pie-chart-fill me-1" style="color: var(--accent-amber);"></i> Risk Category Breakdown</h3>
+      <div style="height: 240px; position: relative;">
+        <canvas id="riskDoughnutChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-bar-chart-fill me-1" style="color: var(--accent-amber);"></i> Subject Performance</h3>
+      <div style="height: 240px; position: relative;">
+        <canvas id="subjectsBarChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="glass-panel p-4 h-100">
+      <h3 class="h6 fw-bold text-uppercase text-secondary mb-3"><i class="bi bi-pentagon-fill me-1" style="color: var(--accent-amber);"></i> Soft Skills Cohort Radar</h3>
+      <div style="height: 240px; position: relative;">
+        <canvas id="softSkillsRadarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Student Roster Section -->
+<div id="rosterSection" class="glass-panel p-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+    <div>
+      <h3 class="h5 fw-bold mb-1">Class Student Roster</h3>
+      <p class="text-secondary small mb-0">Search, filter by risk status, and manage multidimensional data entry</p>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="d-flex flex-wrap gap-2">
+      <input type="text" id="rosterSearch" class="form-control glass-input form-control-sm" style="width: 200px;" 
+             placeholder="Search student or roll..." oninput="filterRosterTable()">
+      
+      <select id="categoryFilter" class="form-select glass-input form-select-sm" style="width: 170px;" onchange="filterRosterTable()">
+        <option value="ALL">All Categories</option>
+        <option value="On Track">On Track</option>
+        <option value="Needs Monitoring">Needs Monitoring</option>
+        <option value="Needs Support">Needs Support</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-responsive">
+    <table class="glass-table" id="studentsTable">
+      <thead>
+        <tr>
+          <th>Roll No</th>
+          <th>Student Name</th>
+          <th>Attendance</th>
+          <th>Avg Marks</th>
+          <th>AI Forecast</th>
+          <th>Support Category</th>
+          <th>Profile Profile</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="rosterTbody">
+        <tr>
+          <td colspan="8" class="text-center py-4 text-muted">
+            <span class="spinner-border spinner-border-sm me-2"></span> Loading classroom roster...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Data Entry Quick Modal -->
+<div class="modal fade" id="dataEntryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <h5 class="modal-title fw-bold" id="dataEntryStudentName">Record Student Data</h5>
+          <p class="text-secondary small mb-0" id="dataEntryStudentSub">Roll No: --</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <ul class="nav nav-pills nav-fill mb-3" id="entryTabs">
+          <li class="nav-item">
+            <button class="nav-link active py-1" data-bs-toggle="pill" data-bs-target="#scoreTab">Exam Score</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link py-1" data-bs-toggle="pill" data-bs-target="#attendanceTab">Attendance</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link py-1" data-bs-toggle="pill" data-bs-target="#indicatorTab">Indicators</button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <!-- Score Tab -->
+          <div class="tab-pane fade show active" id="scoreTab">
+            <form id="scoreForm" onsubmit="submitExamScore(event)">
+              <input type="hidden" id="entryStudentIdScore">
+              <div class="mb-2">
+                <label class="form-label small fw-bold">Subject</label>
+                <select id="scoreSubjectSelect" class="form-select glass-input form-select-sm" required>
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small fw-bold">Exam Type</label>
+                <select id="scoreExamType" class="form-select glass-input form-select-sm" required>
+                  <option value="internal1">Internal Assessment 1</option>
+                  <option value="internal2">Internal Assessment 2</option>
+                  <option value="midterm">Midterm Examination</option>
+                  <option value="final">Final Examination</option>
+                </select>
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label small fw-bold">Marks Scored</label>
+                  <input type="number" step="0.5" min="0" max="100" id="scoreInput" class="form-control glass-input form-control-sm" required>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-bold">Term</label>
+                  <select id="scoreTerm" class="form-select glass-input form-select-sm">
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-amber w-100 btn-sm">Save Exam Score</button>
+            </form>
+          </div>
+
+          <!-- Attendance Tab -->
+          <div class="tab-pane fade" id="attendanceTab">
+            <form id="attForm" onsubmit="submitAttendance(event)">
+              <input type="hidden" id="entryStudentIdAtt">
+              <div class="mb-2">
+                <label class="form-label small fw-bold">Month</label>
+                <input type="month" id="attMonth" class="form-control glass-input form-control-sm" required value="2024-10">
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label small fw-bold">Days Present</label>
+                  <input type="number" min="0" max="31" id="attPresent" class="form-control glass-input form-control-sm" required value="20">
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-bold">Total Days</label>
+                  <input type="number" min="1" max="31" id="attTotal" class="form-control glass-input form-control-sm" required value="22">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-amber w-100 btn-sm">Save Monthly Attendance</button>
+            </form>
+          </div>
+
+          <!-- Indicator Tab -->
+          <div class="tab-pane fade" id="indicatorTab">
+            <form id="indForm" onsubmit="submitIndicator(event)">
+              <input type="hidden" id="entryStudentIdInd">
+              <p class="text-muted small mb-2">Rate student development (1 to 5 scale):</p>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label small">Communication (1-5)</label>
+                  <input type="number" min="1" max="5" id="indComm" class="form-control glass-input form-control-sm" required value="4">
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Presentation (1-5)</label>
+                  <input type="number" min="1" max="5" id="indPres" class="form-control glass-input form-control-sm" required value="4">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small">Confidence</label>
+                  <input type="number" min="1" max="5" id="indConf" class="form-control glass-input form-control-sm" required value="3">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small">Participation</label>
+                  <input type="number" min="1" max="5" id="indPart" class="form-control glass-input form-control-sm" required value="4">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small">Teamwork</label>
+                  <input type="number" min="1" max="5" id="indTeam" class="form-control glass-input form-control-sm" required value="4">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-amber w-100 btn-sm">Update Indicators</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Announcement Modal -->
+<div class="modal fade" id="createAnnouncementModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-panel border-0">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <h5 class="modal-title fw-bold">Post Class Announcement</h5>
+          <p class="text-secondary small mb-0">Publish a bulletin to your enrolled students</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="announcementForm" onsubmit="submitTeacherAnnouncement(event)">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Announcement Title</label>
+            <input type="text" id="annTitle" class="form-control glass-input form-control-sm" placeholder="e.g. Science Project Submission Deadline" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Priority Level</label>
+              <select id="annPriority" class="form-select glass-input form-select-sm">
+                <option value="normal">Normal Notice</option>
+                <option value="important">Important</option>
+                <option value="urgent">Urgent Reminder</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Target Audience</label>
+              <select id="annAudience" class="form-select glass-input form-select-sm">
+                <option value="class">My Assigned Class</option>
+                <option value="students">All Enrolled Students</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Message Content</label>
+            <textarea id="annContent" rows="4" class="form-control glass-input form-control-sm" placeholder="Write the details, instructions, or deadlines for your students..." required></textarea>
+          </div>
+          <button type="submit" id="annSubmitBtn" class="btn btn-amber w-100 btn-sm">
+            <i class="bi bi-send-fill me-1"></i> Broadcast Announcement
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  let rosterData = [];
+  let riskChart = null;
+  let subjectsChart = null;
+  let softSkillsChart = null;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadDashboardData();
+  });
+
+  async function loadDashboardData() {
+    try {
+      // 1. Fetch Class Analytics
+      const analyticsRes = await authFetch("/api/teacher/class/analytics");
+      if (analyticsRes && analyticsRes.ok) {
+        const aData = await analyticsRes.json();
+        document.getElementById("classNameHeading").textContent = aData.class_name;
+        document.getElementById("kpiStudentsCount").textContent = aData.total_students;
+        document.getElementById("kpiAvgScore").textContent = aData.class_avg_predicted_score;
+        document.getElementById("kpiAttendance").textContent = `${aData.class_avg_attendance_pct}%`;
+        renderAnalyticsCharts(aData);
+      }
+
+      // 2. Fetch Attention List
+      const attentionRes = await authFetch("/api/teacher/class/attention");
+      if (attentionRes && attentionRes.ok) {
+        const attData = await attentionRes.json();
+        document.getElementById("kpiAttentionCount").textContent = attData.attention_count;
+        document.getElementById("attentionBadge").textContent = `${attData.attention_count} Identified`;
+        renderAttentionCards(attData.students);
+      }
+
+      // 3. Fetch Roster
+      const rosterRes = await authFetch("/api/teacher/class/students");
+      if (rosterRes && rosterRes.ok) {
+        rosterData = await rosterRes.json();
+        renderRosterTable(rosterData);
+      }
+
+      // 4. Preload subjects for dropdown
+      preloadSubjects();
+
+      // 5. Load Announcements
+      await loadTeacherAnnouncements();
+    } catch (err) {
+      showToast(err.message || "Failed to load teacher dashboard", "Error", true);
+    }
+  }
+
+  function toggleTeacherAnnouncements(event) {
+    if (event && event.target && event.target.closest("button") && event.target.closest("button").onclick && event.target.closest("button").onclick.toString().includes("openCreateAnnouncementModal")) {
+      return;
+    }
+    const collapseEl = document.getElementById("teacherAnnouncementsCollapse");
+    const textEl = document.getElementById("teacherAnnToggleText");
+    const chevEl = document.getElementById("teacherAnnChevron");
+    if (!collapseEl) return;
+
+    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseEl);
+    if (collapseEl.classList.contains("show")) {
+      bsCollapse.hide();
+      if (textEl) textEl.textContent = "View";
+      if (chevEl) chevEl.className = "bi bi-chevron-down ms-1";
+    } else {
+      bsCollapse.show();
+      if (textEl) textEl.textContent = "Hide";
+      if (chevEl) chevEl.className = "bi bi-chevron-up ms-1";
+    }
+  }
+
+  async function loadTeacherAnnouncements() {
+    try {
+      const res = await authFetch("/api/announcements");
+      if (res && res.ok) {
+        const items = await res.json();
+        const feed = document.getElementById("teacherAnnouncementsFeed");
+        const countBadge = document.getElementById("teacherAnnCountBadge");
+        
+        if (countBadge) {
+          countBadge.textContent = `${items.length} Active`;
+        }
+
+        if (!items || items.length === 0) {
+          feed.innerHTML = `<div class="p-3 text-center text-muted small bg-white rounded-3 border">No active announcements. Click "+ Post Announcement" above to publish one.</div>`;
+          return;
+        }
+
+        feed.innerHTML = items.map(a => {
+          let priorityBadge = '';
+          if (a.priority === "urgent") {
+            priorityBadge = `<span class="badge" style="background: var(--status-support-bg); color: var(--status-support-text); border: 1px solid var(--status-support-border);"><i class="bi bi-exclamation-diamond-fill me-1"></i>Urgent</span>`;
+          } else if (a.priority === "important") {
+            priorityBadge = `<span class="badge" style="background: var(--status-monitoring-bg); color: var(--status-monitoring-text); border: 1px solid var(--status-monitoring-border);"><i class="bi bi-star-fill me-1"></i>Important</span>`;
+          } else {
+            priorityBadge = `<span class="badge bg-light text-secondary border">Notice</span>`;
+          }
+
+          let scopeLabel = a.class_name ? `Class: ${a.class_name}` : (a.target_audience === 'all' ? 'School-Wide' : a.target_audience.toUpperCase());
+          let deleteBtn = a.can_delete ? `<button class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.74rem;" onclick="deleteTeacherAnnouncement('${a.id}')"><i class="bi bi-trash3"></i> Delete</button>` : '';
+
+          return `
+            <div class="p-3 bg-white rounded-3 border" style="box-shadow: 0 2px 6px rgba(42, 29, 21, 0.04);">
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-bold fs-6 text-espresso">${a.title}</span>
+                  ${priorityBadge}
+                  <span class="badge" style="background: rgba(217, 119, 6, 0.12); color: var(--accent-amber); font-size: 0.72rem;">${scopeLabel}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted small"><i class="bi bi-clock me-1"></i>${a.created_at}</span>
+                  ${deleteBtn}
+                </div>
+              </div>
+              <p class="mb-1 text-secondary small" style="white-space: pre-wrap; line-height: 1.5;">${a.content}</p>
+              <div class="text-end text-muted" style="font-size: 0.74rem;">
+                Author: <strong>${a.author_name}</strong> (${a.author_role.toUpperCase()})
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch (e) {
+      console.warn("Could not load announcements", e);
+    }
+  }
+
+  function openCreateAnnouncementModal(event) {
+    if (event) event.stopPropagation();
+    document.getElementById("annTitle").value = "";
+    document.getElementById("annContent").value = "";
+    document.getElementById("annPriority").value = "normal";
+    document.getElementById("annAudience").value = "class";
+    const modal = new bootstrap.Modal(document.getElementById("createAnnouncementModal"));
+    modal.show();
+  }
+
+  async function submitTeacherAnnouncement(e) {
+    e.preventDefault();
+    const btn = document.getElementById("annSubmitBtn");
+    btn.disabled = true;
+
+    const payload = {
+      title: document.getElementById("annTitle").value.trim(),
+      content: document.getElementById("annContent").value.trim(),
+      priority: document.getElementById("annPriority").value,
+      target_audience: document.getElementById("annAudience").value,
+    };
+
+    try {
+      const res = await authFetch("/api/announcements", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      if (res && res.ok) {
+        showToast("Announcement published successfully!", "Success");
+        bootstrap.Modal.getInstance(document.getElementById("createAnnouncementModal")).hide();
+        loadTeacherAnnouncements();
+      } else {
+        const err = await res.json();
+        showToast(err.detail || "Failed to publish announcement", "Error", true);
+      }
+    } catch (err) {
+      showToast(err.message, "Error", true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteTeacherAnnouncement(id) {
+    if (!confirm("Are you sure you want to delete this announcement?")) return;
+    try {
+      const res = await authFetch(`/api/announcements/${id}`, { method: "DELETE" });
+      if (res && res.ok) {
+        showToast("Announcement deleted", "Success");
+        loadTeacherAnnouncements();
+      } else {
+        showToast("Could not delete announcement", "Error", true);
+      }
+    } catch (err) {
+      showToast(err.message, "Error", true);
+    }
+  }
+
+  function renderAttentionCards(students) {
+    const container = document.getElementById("attentionCardsRow");
+    if (!students || students.length === 0) {
+      container.innerHTML = `<div class="col-12 text-center py-2 text-success fw-semibold"><i class="bi bi-shield-check me-1"></i> All students are currently on track!</div>`;
+      return;
+    }
+
+    container.innerHTML = students.slice(0, 4).map(st => {
+      const isSupport = st.risk_category === "Needs Support";
+      const badgeClass = isSupport ? "badge-needs-support" : "badge-needs-monitoring";
+      const icon = isSupport ? "bi-exclamation-triangle-fill" : "bi-clock-history";
+      return `
+        <div class="col-12 col-sm-6 col-xl-3">
+          <div class="p-3 glass-panel" style="border-left: 3px solid ${isSupport ? 'var(--status-support-accent)' : 'var(--status-monitoring-accent)'};">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="fw-bold text-truncate" style="max-width: 140px;">${st.full_name}</span>
+              <span class="badge ${badgeClass}" style="font-size: 0.72rem;"><i class="bi ${icon} me-1"></i>${st.risk_category}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center small text-secondary">
+              <span>Roll #${st.roll_no}</span>
+              <span class="fw-bold">Forecast: ${st.predicted_score}</span>
+            </div>
+            <div class="mt-2 text-end">
+              <a href="/teacher/students/${st.student_id}" class="btn btn-outline-glass btn-sm py-0 px-2" style="font-size: 0.78rem;">Insights &rarr;</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderAnalyticsCharts(data) {
+    // 1. Risk Doughnut Chart
+    const ctxRisk = document.getElementById("riskDoughnutChart").getContext("2d");
+    if (riskChart) riskChart.destroy();
+    riskChart = new Chart(ctxRisk, {
+      type: "doughnut",
+      data: {
+        labels: ["On Track", "Needs Monitoring", "Needs Support"],
+        datasets: [{
+          data: [
+            data.risk_breakdown["On Track"] || 0,
+            data.risk_breakdown["Needs Monitoring"] || 0,
+            data.risk_breakdown["Needs Support"] || 0,
+          ],
+          backgroundColor: ["#2d6a4f", "#d97706", "#c2410c"],
+          borderWidth: 2,
+          borderColor: "#fff",
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { font: { family: 'Inter', size: 11 } } },
+        },
+        cutout: "68%",
+      }
+    });
+
+    // 2. Subject Performance Bar Chart
+    const ctxSub = document.getElementById("subjectsBarChart").getContext("2d");
+    if (subjectsChart) subjectsChart.destroy();
+    const subLabels = Object.keys(data.subject_averages || {});
+    const subVals = Object.values(data.subject_averages || {});
+    subjectsChart = new Chart(ctxSub, {
+      type: "bar",
+      data: {
+        labels: subLabels,
+        datasets: [{
+          label: "Class Avg Marks",
+          data: subVals,
+          backgroundColor: "rgba(62, 43, 32, 0.75)",
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, grid: { color: "rgba(138, 107, 85, 0.1)" } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 3. Soft Skills Radar Chart
+    const ctxRadar = document.getElementById("softSkillsRadarChart").getContext("2d");
+    if (softSkillsChart) softSkillsChart.destroy();
+    softSkillsChart = new Chart(ctxRadar, {
+      type: "radar",
+      data: {
+        labels: ["Communication", "Presentation", "Confidence", "Participation", "Teamwork"],
+        datasets: [{
+          label: "Cohort Development (1-5)",
+          data: [
+            data.soft_skills_averages.communication,
+            data.soft_skills_averages.presentation,
+            data.soft_skills_averages.confidence,
+            data.soft_skills_averages.participation,
+            data.soft_skills_averages.teamwork,
+          ],
+          backgroundColor: "rgba(217, 119, 6, 0.2)",
+          borderColor: "#d97706",
+          pointBackgroundColor: "#2a1d15",
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: { min: 0, max: 5, ticks: { stepSize: 1 } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function renderRosterTable(items) {
+    const tbody = document.getElementById("rosterTbody");
+    if (!items || items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No students matching criteria</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map(st => {
+      let badgeHtml = '';
+      if (st.risk_category === "On Track") {
+        badgeHtml = `<span class="badge badge-on-track"><span class="status-dot status-dot-track"></span>On Track</span>`;
+      } else if (st.risk_category === "Needs Monitoring") {
+        badgeHtml = `<span class="badge badge-needs-monitoring"><span class="status-dot status-dot-monitoring"></span>Needs Monitoring</span>`;
+      } else {
+        badgeHtml = `<span class="badge badge-needs-support"><span class="status-dot status-dot-support"></span>Needs Support</span>`;
+      }
+
+      return `
+        <tr>
+          <td class="fw-bold">${st.roll_no}</td>
+          <td>
+            <div class="fw-semibold">${st.full_name}</div>
+            <div class="text-muted small">${st.email}</div>
+          </td>
+          <td>
+            <span class="badge ${st.attendance_pct >= 85 ? 'bg-light text-dark' : 'bg-warning-subtle text-warning-emphasis'}">${st.attendance_pct}%</span>
+          </td>
+          <td>${st.avg_score}</td>
+          <td>
+            <strong class="fs-6" style="color: var(--brand-espresso);">${st.predicted_score !== null ? st.predicted_score : 'Pending'}</strong>
+          </td>
+          <td>${badgeHtml}</td>
+          <td><span class="small text-secondary">${st.cluster_name}</span></td>
+          <td class="text-end">
+            <button class="btn btn-outline-glass btn-sm py-1 px-2" onclick="openDataEntryModal('${st.id}', '${st.full_name}', ${st.roll_no})">
+              <i class="bi bi-pencil-square me-1"></i> Add Data
+            </button>
+            <a href="/teacher/students/${st.id}" class="btn btn-amber btn-sm py-1 px-2">
+              <i class="bi bi-compass-fill me-1"></i> Insights
+            </a>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function filterRosterTable() {
+    const q = document.getElementById("rosterSearch").value.toLowerCase().trim();
+    const cat = document.getElementById("categoryFilter").value;
+
+    const filtered = rosterData.filter(st => {
+      const matchesQ = st.full_name.toLowerCase().includes(q) || String(st.roll_no).includes(q) || st.email.toLowerCase().includes(q);
+      const matchesCat = (cat === "ALL") || (st.risk_category === cat);
+      return matchesQ && matchesCat;
+    });
+
+    renderRosterTable(filtered);
+  }
+
+  async function handleBatchPredict() {
+    const btn = document.getElementById("batchPredictBtn");
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Running ML Pipeline...`;
+
+    try {
+      const res = await authFetch("/api/teacher/class/predict", { method: "POST" });
+      if (res && res.ok) {
+        showToast("Class AI predictions updated successfully!", "Batch Prediction Complete");
+        loadDashboardData();
+      } else {
+        const err = await res.json();
+        showToast(err.detail || "Batch prediction failed", "Error", true);
+      }
+    } catch (e) {
+      showToast(e.message, "Error", true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-cpu-fill me-1"></i> Re-Run Class AI Predictions`;
+    }
+  }
+
+  // --- Modal & Data Entry Functions ---
+  function openDataEntryModal(id, name, roll) {
+    document.getElementById("entryStudentIdScore").value = id;
+    document.getElementById("entryStudentIdAtt").value = id;
+    document.getElementById("entryStudentIdInd").value = id;
+    document.getElementById("dataEntryStudentName").textContent = `Record Data: ${name}`;
+    document.getElementById("dataEntryStudentSub").textContent = `Roll No: ${roll}`;
+    const modal = new bootstrap.Modal(document.getElementById("dataEntryModal"));
+    modal.show();
+  }
+
+  async function preloadSubjects() {
+    try {
+      const res = await authFetch("/api/student/me/scores"); // Any scores endpoint gives subject list
+      // Or static defaults matching DB
+      const select = document.getElementById("scoreSubjectSelect");
+      if (select && select.options.length === 0) {
+        const subjects = [
+          { id: "sub_math", name: "Math" },
+          { id: "sub_science", name: "Science" },
+          { id: "sub_english", name: "English" },
+          { id: "sub_social", name: "Social Studies" },
+          { id: "sub_computer", name: "Computer" },
+        ];
+        // Populate
+        subjects.forEach(s => {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = s.name;
+          select.appendChild(opt);
+        });
+      }
+    } catch (e) {}
+  }
+
+  async function submitExamScore(e) {
+    e.preventDefault();
+    const payload = {
+      student_id: document.getElementById("entryStudentIdScore").value,
+      subject_id: document.getElementById("scoreSubjectSelect").value,
+      exam_type: document.getElementById("scoreExamType").value,
+      score: parseFloat(document.getElementById("scoreInput").value),
+      term: document.getElementById("scoreTerm").value,
+    };
+    try {
+      const res = await authFetch("/api/teacher/scores", { method: "POST", body: JSON.stringify(payload) });
+      if (res && res.ok) {
+        showToast("Exam score saved!", "Success");
+        bootstrap.Modal.getInstance(document.getElementById("dataEntryModal")).hide();
+        loadDashboardData();
+      }
+    } catch (err) { showToast(err.message, "Error", true); }
+  }
+
+  async function submitAttendance(e) {
+    e.preventDefault();
+    const payload = {
+      student_id: document.getElementById("entryStudentIdAtt").value,
+      month: document.getElementById("attMonth").value,
+      days_present: parseInt(document.getElementById("attPresent").value),
+      days_total: parseInt(document.getElementById("attTotal").value),
+    };
+    try {
+      const res = await authFetch("/api/teacher/attendance", { method: "POST", body: JSON.stringify(payload) });
+      if (res && res.ok) {
+        showToast("Attendance record saved!", "Success");
+        bootstrap.Modal.getInstance(document.getElementById("dataEntryModal")).hide();
+        loadDashboardData();
+      }
+    } catch (err) { showToast(err.message, "Error", true); }
+  }
+
+  async function submitIndicator(e) {
+    e.preventDefault();
+    const payload = {
+      student_id: document.getElementById("entryStudentIdInd").value,
+      term: "Term 1",
+      communication: parseInt(document.getElementById("indComm").value),
+      presentation: parseInt(document.getElementById("indPres").value),
+      confidence: parseInt(document.getElementById("indConf").value),
+      participation: parseInt(document.getElementById("indPart").value),
+      teamwork: parseInt(document.getElementById("indTeam").value),
+    };
+    try {
+      const res = await authFetch("/api/teacher/indicators", { method: "POST", body: JSON.stringify(payload) });
+      if (res && res.ok) {
+        showToast("Development indicators saved!", "Success");
+        bootstrap.Modal.getInstance(document.getElementById("dataEntryModal")).hide();
+        loadDashboardData();
+      }
+    } catch (err) { showToast(err.message, "Error", true); }
+  }
+</script>
+{% endblock %}
